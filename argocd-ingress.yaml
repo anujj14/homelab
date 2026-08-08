@@ -1,19 +1,25 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: argocd-ingress
+  name: argocd-server
   namespace: argocd
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  rules:
-  - host: argocd.anuj
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: argocd-server
-            port:
-              number: 80
+  entryPoints:
+    - websecure
+  routes:
+    # Rule 1: Normal Web Browser Traffic
+    - kind: Rule
+      match: Host(`argocd.anuj`)
+      priority: 10
+      services:
+        - name: argocd-server
+          port: 80
+    # Rule 2: Argo CD CLI (gRPC) Traffic
+    - kind: Rule
+      match: Host(`argocd.anuj`) && Header(`Content-Type`, `application/grpc`)
+      priority: 11
+      services:
+        - name: argocd-server
+          port: 80
+          scheme: h2c
+  tls: {} 
