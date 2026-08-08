@@ -1,0 +1,65 @@
+---
+# 1. Deployment: Runs the Vaultwarden container
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  labels:
+    app: vaultwarden
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultwarden
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      containers:
+      - name: vaultwarden
+        image: vaultwarden/server:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: vaultwarden-data
+          mountPath: /data
+      volumes:
+      - name: vaultwarden-data
+        hostPath:
+          path: /home/anuj/vaultwarden/data
+          type: DirectoryOrCreate
+
+---
+# 2. Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden-service
+spec:
+  type: ClusterIP
+  selector:
+    app: vaultwarden
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+# 3. Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vaultwarden-ingress
+spec:
+  rules:
+  - host: vaultwarden.anuj
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vaultwarden-service
+            port:
+              number: 80
