@@ -1,5 +1,4 @@
 ---
-# 1. The Service (No selector means it won't look for a k3s pod)
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,19 +10,17 @@ spec:
       targetPort: 2283
 
 ---
-# 2. The Endpoint (Forwards k3s traffic out to Podman)
 apiVersion: v1
 kind: Endpoints
 metadata:
   name: immich-external-service
 subsets:
   - addresses:
-      - ip: 100.86.164.122 
+      - ip: 10.42.0.1 
     ports:
       - port: 2283
 
 ---
-# 3. The Ingress 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

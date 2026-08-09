@@ -15,7 +15,7 @@ metadata:
   name: adguard-external-service
 subsets:
 - addresses:
-  - ip: 100.86.164.122
+  - ip: 10.42.0.1
   ports:
   - port: 8081
 
