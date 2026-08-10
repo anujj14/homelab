@@ -52,7 +52,7 @@ spec:
       labels:
         app: homepage
     spec:
-      serviceAccountName: homepage    # <--- THIS IS THE NEW LINE THAT UNLOCKS THE POD
+      serviceAccountName: homepage    
       containers:
       - name: homepage
         image: ghcr.io/gethomepage/homepage:latest
@@ -60,7 +60,20 @@ spec:
         - containerPort: 3000
         volumeMounts:
         - name: homepage-config-volume
-          mountPath: /app/config
+          mountPath: /app/config/settings.yaml
+          subPath: settings.yaml
+        - name: homepage-config-volume
+          mountPath: /app/config/kubernetes.yaml
+          subPath: kubernetes.yaml
+        - name: homepage-config-volume
+          mountPath: /app/config/services.yaml
+          subPath: services.yaml
+        - name: homepage-config-volume
+          mountPath: /app/config/bookmarks.yaml
+          subPath: bookmarks.yaml
+        - name: homepage-config-volume
+          mountPath: /app/config/widgets.yaml
+          subPath: widgets.yaml
       volumes:
       - name: homepage-config-volume
         configMap:
