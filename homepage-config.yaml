@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+data:
+  kubernetes.yaml: |
+    mode: cluster
+    traefik: true
+
+  settings.yaml: |
+    title: "Anuj's Homelab"
+    background: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2560&auto=format&fit=crop"
+    
+  services.yaml: |
+    - Network & Security:
+        - AdGuard:
+            icon: adguard-home.png
+            href: "http://adguard.anuj"
+            description: DNS Sinkhole
+        - Vaultwarden:
+            icon: vaultwarden.png
+            href: "https://vaultwarden.anuj"
+            description: Password Manager
+    - Media:
+        - Navidrome:
+            icon: navidrome.png
+            href: "http://navidrome.anuj"
+            description: Music Server
+        - Immich:
+            icon: immich.png
+            href: "http://immich.anuj"
+            description: Photo Backup
+            
+  bookmarks.yaml: |
+    # left empty for now
+  widgets.yaml: |
+    # left empty for now
