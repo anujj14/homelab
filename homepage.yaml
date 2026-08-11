@@ -164,20 +164,15 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           env:
-            - name: MY_POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: HOMEPAGE_ALLOWED_HOSTS
-              value: "$(MY_POD_IP):3000,gethomepage.dev"
-          ports:
-            - name: http
-              containerPort: 3000
-              protocol: TCP
+          - name: HOMEPAGE_ALLOWED_HOSTS
+            value: "home.anuj"
           livenessProbe:
             httpGet:
               path: /api/healthcheck
               port: http
+              httpHeaders:
+              - name: Host
+                value: "home.anuj"
             initialDelaySeconds: 5
             periodSeconds: 15
           volumeMounts:
