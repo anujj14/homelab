@@ -19,7 +19,62 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: homepage
 ---
-# ConfigMap 
+---
+# Glances Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glances
+  labels:
+    app.kubernetes.io/name: glances
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: glances
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: glances
+    spec:
+      hostPID: true 
+      containers:
+        - name: glances
+          image: nicolargo/glances:latest-full
+          ports:
+            - name: http
+              containerPort: 61208
+              protocol: TCP
+          volumeMounts:
+            - name: rootfs
+              mountPath: /host
+              readOnly: true
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: rootfs
+          hostPath:
+            path: /
+            type: Directory
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+---
+# Glances Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: glances
+spec:
+  selector:
+    app.kubernetes.io/name: glances
+  ports:
+    - port: 61208
+      targetPort: http
+      name: http
+---
+# ConfigMap
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -30,21 +85,82 @@ data:
   kubernetes.yaml: |
     mode: cluster
   settings.yaml: |
-    providers:
-      longhorn:
-        url: https://longhorn.my.network
-  custom.css: ""
+    title: "Anuj's Homelab"
+    theme: dark
+    background: https://w.wallhaven.cc/full/po/wallhaven-po2my3.jpg
+    backgroundOpacity: 0.6
+    backgroundBlur: sm
+    cardBlur: md
+    iconAsBackground: false
+    hideVersion: true
+    layout:
+      Media & Apps:
+        style: row
+        columns: 4
+      Security:
+        style: row
+        columns: 4
+      Infrastructure:
+        style: row
+        columns: 4
+  custom.css: |
+    /* Liquid Glass Theme Enhancements */
+    #main > div:nth-child(1) > div {
+      background-color: rgba(25, 25, 25, 0.5) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+    .service-list .service {
+      background-color: transparent !important;
+    }
+    .service-list .service:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      transform: translateY(-2px);
+      transition: all 0.2s ease;
+    }
   custom.js: ""
   bookmarks.yaml: |
-    - Developer:
-      - Github:
+    - Homelab:
+      - GitHub:
         - abbr: GH
-          href: https://github.com/
+          href: https://youtube.com/
+      - Arch Linux:
+        - abbr: AL
+          href: https://archlinux.org/news/
   services.yaml: |
-    - My First Group:
-      - My First Service:
-        href: http://localhost/
-        description: Homepage is awesome
+    - Media & Apps:
+      - Immich:
+          href: http://immich.anuj
+          description: Photo & Video Backup
+          icon: immich.png
+      - Navidrome:
+          href: http://navidrome.anuj
+          description: Music Server
+          icon: navidrome.png
+    - Security:
+      - Vaultwarden:
+          href: http://vaultwarden.anuj
+          description: Password Manager
+          icon: vaultwarden.png
+    - Infrastructure:
+      - AdGuard Home:
+          href: http://adguard.anuj
+          description: DNS & Ad Blocking
+          icon: adguard-home.png
+      - ArgoCD:
+          href: http://argocd.anuj
+          description: GitOps Deployment
+          icon: argocd.png
+      - Tailscale:
+          href: https://login.tailscale.com/admin/machines
+          description: Mesh VPN Access
+          icon: tailscale.png
+      - Homepage:
+          href: http://home.anuj
+          description: Dashboard
+          icon: homepage.png
   widgets.yaml: |
     - kubernetes:
         cluster:
@@ -52,22 +168,23 @@ data:
           cpu: true
           memory: true
           showLabel: true
-          label: "cluster"
+          label: "K3s Cluster"
         nodes:
           show: true
           cpu: true
           memory: true
           showLabel: true
-    - resources:
-        backend: resources
-        expanded: true
+    - glances:
+        url: http://glances.default.svc.cluster.local:61208
+        label: "My Laptop"
         cpu: true
-        memory: true
-        network: default
+        mem: true
+        disk: / 
+        uptime: true
+        expanded: true
     - search:
         provider: duckduckgo
         target: _blank
-  docker.yaml: ""
 ---
 # ClusterRole and ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
