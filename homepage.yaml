@@ -5,19 +5,6 @@ metadata:
   name: homepage
   labels:
     app.kubernetes.io/name: homepage
-secrets:
-  - name: homepage
----
-# Secret
-apiVersion: v1
-kind: Secret
-type: kubernetes.io/service-account-token
-metadata:
-  name: homepage
-  labels:
-    app.kubernetes.io/name: homepage
-  annotations:
-    kubernetes.io/service-account.name: homepage
 ---
 # ConfigMap
 apiVersion: v1
@@ -33,107 +20,135 @@ data:
     title: "Anuj's Homelab"
     theme: dark
     background: https://w.wallhaven.cc/full/po/wallhaven-po2my3.jpg
-    backgroundOpacity: 0.6
-    backgroundBlur: xl
-    cardBlur: lg
-    iconAsBackground: true # Makes icons big like Apple TV
+    backgroundOpacity: 0.7
+    backgroundBlur: sm
+    cardBlur: xl
+    iconAsBackground: true
     hideVersion: true
     layout:
-      Media & Apps:
+      Bookmarks:
         style: row
         columns: 4
-      Security:
+      Homelab:
         style: row
-        columns: 4
-      Infrastructure:
-        style: row
-        columns: 4
+        columns: 3
   custom.css: |
-    /* Apple TV Style Glass Enhancements */
-    #main > div:nth-child(1) > div {
-      background-color: rgba(25, 25, 25, 0.4) !important;
-      backdrop-filter: blur(24px) saturate(180%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      border-radius: 24px !important;
-      box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4) !important;
+    :root {
+      --glass-bg: rgba(30, 30, 30, 0.35);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-hover-border: rgba(255, 255, 255, 0.25);
+      --glass-blur: blur(25px) saturate(150%);
     }
-    /* Big floating tiles for icons */
-    .service-list .service {
-      background-color: rgba(255, 255, 255, 0.05) !important;
+
+    .services-list li > div {
+      background-color: var(--glass-bg) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      border: 1px solid var(--glass-border) !important;
       border-radius: 16px !important;
-      padding: 10px !important;
-      transition: all 0.3s ease !important;
+      transition: all 0.2s ease-in-out !important;
     }
-    .service-list .service:hover {
-      background-color: rgba(255, 255, 255, 0.1) !important;
-      transform: translateY(-5px) scale(1.02); /* Lift effect on hover */
-      box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.3) !important;
+
+    .services-list li:hover > div {
+      transform: translateY(-2px) !important; 
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+      border-color: var(--glass-hover-border) !important;
+      background-color: rgba(45, 45, 45, 0.5) !important;
     }
-    /* Adjust icon sizing */
+
     .service-icon {
-      width: 48px !important;
-      height: 48px !important;
+      width: 60px !important;
+      height: 60px !important;
+      border-radius: 14px !important;
     }
   custom.js: ""
-  bookmarks.yaml: |
-    - Developer:
-      - GitHub:
-        - abbr: GH
-          href: https://github.com/
-      - Youtube:
-        - abbr: YT
-          href: https://youtube.com/
-      - Arch Linux:
-        - abbr: AL
-          href: https://archlinux.org/news/
+  bookmarks.yaml: "" 
   services.yaml: |
-    - Media & Apps:
+    - Bookmarks:
+      - GitHub:
+          href: https://github.com/
+          description: Code Repository
+          icon: si-github
+      - Youtube:
+          href: https://youtube.com/
+          description: Video Streaming
+          icon: si-youtube
+      - Arch Linux:
+          href: https://archlinux.org/news/
+          description: OS Updates
+          icon: si-archlinux
+    - Homelab:
       - Immich:
           href: http://immich.anuj
           description: Photos
           icon: immich.png
+          widget:
+            type: immich
+            url: http://immich-external-service.default.svc.cluster.local:2283
+            key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
+            version: 2
+            fields: ["photos", "videos", "storage"] 
+      - AdGuard Home:
+          href: http://adguard.anuj
+          description: DNS
+          icon: adguard-home.png
+          widget:
+            type: adguard
+            url: http://adguard-external-service.default.svc.cluster.local:8081
+            username: "{{HOMEPAGE_VAR_ADGUARD_USER}}"
+            password: "{{HOMEPAGE_VAR_ADGUARD_PASS}}"
+      - ArgoCD:
+          href: https://argocd.anuj
+          description: GitOps
+          icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+          widget:
+            type: argocd
+            url: http://argocd-server.argocd.svc.cluster.local:80 
+            key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
+            fields: ["apps", "synced", "healthy", "degraded"]
       - Navidrome:
           href: http://navidrome.anuj
           description: Music
           icon: navidrome.png
-    - Security:
       - Vaultwarden:
           href: https://vaultwarden.anuj
           description: Passwords
           icon: vaultwarden.png
-    - Infrastructure:
-      - AdGuard Home:
-          href: https://adguard.anuj
-          description: DNS
-          icon: adguard-home.png
-      - ArgoCD:
-          href: https://argocd.anuj
-          description: GitOps
-          icon: argocd.png
       - Tailscale:
           href: https://login.tailscale.com/admin/machines
           description: VPN
           icon: tailscale.png
-      - Homepage:
-          href: http://home.anuj
-          description: Dashboard
-          icon: homepage.png
   widgets.yaml: |
-    - greeting:
-        text_size: 3xl
-        text: "Hello Anuj"
+    - resources:
+        cpu: true
+        memory: true
+        disk: /
+    - kubernetes:
+        cluster:
+          show: false
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "Yoga k3s"
+        nodes:
+          show: false
     - datetime:
-        text_size: 2xl
+        text_size: xl
+        locale: en-GB
         format:
-          timeStyle: short
-          dateStyle: long
+          hour: "2-digit"
+          minute: "2-digit"
+          second: "2-digit"
           hourCycle: h23
+          weekday: short
+          day: numeric
+          month: short
     - search:
         provider: custom
         url: http://search.anuj/search?q=
         target: _blank
 ---
-# ClusterRole and ClusterRoleBinding
+# ClusterRole and ClusterRoleBinding 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -143,15 +158,6 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["namespaces", "pods", "nodes"]
-    verbs: ["get", "list"]
-  - apiGroups: ["extensions", "networking.k8s.io"]
-    resources: ["ingresses"]
-    verbs: ["get", "list"]
-  - apiGroups: ["traefik.io"]
-    resources: ["ingressroutes"]
-    verbs: ["get", "list"]
-  - apiGroups: ["gateway.networking.k8s.io"]
-    resources: ["httproutes", "gateways"]
     verbs: ["get", "list"]
   - apiGroups: ["metrics.k8s.io"]
     resources: ["nodes", "pods"]
@@ -232,17 +238,34 @@ spec:
               protocol: TCP
           securityContext:
             allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000
-            seccompProfile:
-              type: RuntimeDefault
           env:
           - name: HOMEPAGE_ALLOWED_HOSTS
             value: "home.anuj"
+          - name: NODE_TLS_REJECT_UNAUTHORIZED
+            value: "0"
+          - name: HOMEPAGE_VAR_IMMICH_KEY
+            valueFrom:
+              secretKeyRef:
+                name: homepage-secrets
+                key: immich-key
+          - name: HOMEPAGE_VAR_ADGUARD_USER
+            valueFrom:
+              secretKeyRef:
+                name: homepage-secrets
+                key: adguard-user
+          - name: HOMEPAGE_VAR_ADGUARD_PASS
+            valueFrom:
+              secretKeyRef:
+                name: homepage-secrets
+                key: adguard-pass
+          - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: homepage-secrets
+                key: argocd-token
           livenessProbe:
             httpGet:
               path: /api/healthcheck
@@ -266,14 +289,12 @@ spec:
         - name: logs
           emptyDir: {}
 ---
-# Ingress
+# Ingress 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: homepage-ingress
   namespace: default
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
 spec:
   ingressClassName: traefik
   rules:
