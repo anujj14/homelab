@@ -153,6 +153,10 @@ spec:
         - name: homepage
           image: "ghcr.io/gethomepage/homepage:latest"
           imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -209,31 +213,28 @@ spec:
         - name: logs
           emptyDir: {}
 ---
-# IngressRoute
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: homepage
-  labels:
-    app.kubernetes.io/name: homepage
+  name: homepage-ingress
+  namespace: default
   annotations:
-    gethomepage.dev/description: Dynamically Detected Homepage
+    kubernetes.io/ingress.class: "traefik"
     gethomepage.dev/enabled: "true"
-    gethomepage.dev/group: Cluster Management
-    gethomepage.dev/icon: homepage.png
-    gethomepage.dev/name: Homepage
+    gethomepage.dev/name: "Homepage"
+    gethomepage.dev/description: "Dynamically Detected Homepage"
+    gethomepage.dev/group: "Cluster Management"
+    gethomepage.dev/icon: "homepage.png"
 spec:
-  entryPoints:
-    - websecure
-  routes:
-    - kind: Rule
-      match: Host(`home.anuj`) 
-      services:
-        - kind: Service
-          name: homepage
-          port: 3000
-          sticky:
-            cookie:
-              httpOnly: true
-              secure: true
-              sameSite: none
+  ingressClassName: traefik
+  rules:
+  - host: home.anuj
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: homepage
+            port:
+              number: 3000
