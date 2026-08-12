@@ -19,6 +19,7 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: homepage
 ---
+---
 # Glances Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -36,10 +37,11 @@ spec:
       labels:
         app.kubernetes.io/name: glances
     spec:
-      hostPID: true 
+      hostPID: true
       containers:
         - name: glances
           image: nicolargo/glances:latest-full
+          command: ["glances", "-w"]
           ports:
             - name: http
               containerPort: 61208
@@ -134,16 +136,16 @@ data:
           icon: navidrome.png
     - Security:
       - Vaultwarden:
-          href: http://vaultwarden.anuj
+          href: https://vaultwarden.anuj
           description: Password Manager
           icon: vaultwarden.png
     - Infrastructure:
       - AdGuard Home:
-          href: http://adguard.anuj
+          href: https://adguard.anuj
           description: DNS & Ad Blocking
           icon: adguard-home.png
       - ArgoCD:
-          href: http://argocd.anuj
+          href: https://argocd.anuj
           description: GitOps Deployment
           icon: argocd.png
       - Tailscale:
@@ -163,13 +165,10 @@ data:
           showLabel: true
           label: "K3s Cluster"
         nodes:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: true
+          show: false
     - glances:
         url: http://glances.default.svc.cluster.local:61208
-        label: "My Laptop"
+        label: "yoga"
         cpu: true
         mem: true
         disk: / 
@@ -320,11 +319,11 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/name: "Homepage"
-    gethomepage.dev/description: "Dynamically Detected Homepage"
-    gethomepage.dev/group: "Cluster Management"
-    gethomepage.dev/icon: "homepage.png"
+    # gethomepage.dev/enabled: "true"
+    # gethomepage.dev/name: "Homepage"
+    # gethomepage.dev/description: "Dynamically Detected Homepage"
+    # gethomepage.dev/group: "Cluster Management"
+    # gethomepage.dev/icon: "homepage.png"
 spec:
   ingressClassName: traefik
   rules:
