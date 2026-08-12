@@ -19,8 +19,7 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: homepage
 ---
----
-# Glances Deployment 
+# Glances Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -49,17 +48,11 @@ spec:
             - name: rootfs
               mountPath: /host
               readOnly: true
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
       volumes:
         - name: rootfs
           hostPath:
             path: /
             type: Directory
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
-            type: Socket
 ---
 # Glances Service
 apiVersion: v1
