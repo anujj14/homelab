@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: searxng-config
+data:
+  settings.yml: |
+    use_default_settings: true
+    server:
+      image_proxy: true
+    general:
+      debug: false
+      instance_name: "SearXNG"
+    ui:
+      static_use_hash: true
+    redis:
+      url: redis://searxng-redis:6379/0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: searxng-redis
+  labels:
+    app: searxng-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: searxng-redis
+  template:
+    metadata:
+      labels:
+        app: searxng-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 250m
+          requests:
+            memory: 64Mi
+            cpu: 50m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: searxng-redis
+spec:
+  selector:
+    app: searxng-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: searxng
+  labels:
+    app: searxng
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: searxng
+  template:
+    metadata:
+      labels:
+        app: searxng
+    spec:
+      containers:
+      - name: searxng
+        image: searxng/searxng:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SEARXNG_BASE_URL
+          value: "http://search.anuj/"
+        - name: SEARXNG_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: searxng-secret
+              key: SEARXNG_SECRET
+        volumeMounts:
+        - name: config
+          mountPath: /etc/searxng/settings.yml
+          subPath: settings.yml
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: config
+        configMap:
+          name: searxng-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: searxng
+spec:
+  selector:
+    app: searxng
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: searxng-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: search.anuj
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: searxng
+            port:
+              number: 8080
