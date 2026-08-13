@@ -1,5 +1,5 @@
 ---
-# Glance Configuration (The Default Layout)
+# Glance Configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,13 +7,130 @@ metadata:
   namespace: default
 data:
   glance.yml: |
+    theme:
+      primary-color: 140 70 50
+      radius: 18px
+      
     pages:
-      - name: Home
-        # Optionally, if you only have a single page you can hide the desktop navigation for a cleaner look
-        # hide-desktop-navigation: true
+      # ==========================================
+      # PAGE 1: HOMELAB
+      # ==========================================
+      - name: Homelab
+        columns:
+          # LEFT COLUMN
+          - size: small
+            widgets:
+              - type: calendar
+                first-day-of-week: monday
+                
+              # AdGuard Native DNS Stats Widget
+              - type: dns-stats
+                title: AdGuard Home
+                service: adguard
+                url: http://adguard-external-service.default.svc.cluster.local:8081
+                username: ${HOMEPAGE_VAR_ADGUARD_USER}
+                password: ${HOMEPAGE_VAR_ADGUARD_PASS}
+
+              - type: releases
+                cache: 1d
+                repositories:
+                  - immich-app/immich
+                  - syncthing/syncthing
+                  - navidrome/navidrome
+                  - dani-garcia/vaultwarden
+                  - glanceapp/glance
+
+
+          # CENTER COLUMN
+          - size: full
+            widgets:
+              - type: search
+                autofocus: false
+                search-engine: http://search.anuj/search?q={QUERY}
+                
+              - type: monitor
+                title: Service Links & Status
+                cache: 1m
+                sites:
+                  - title: Navidrome
+                    url: http://navidrome.anuj
+                    check-url: http://navidrome-service.default.svc.cluster.local:4533
+                    icon: sh:navidrome
+                  - title: Vaultwarden
+                    url: https://vaultwarden.anuj
+                    check-url: http://vaultwarden-service.default.svc.cluster.local:80
+                    icon: sh:vaultwarden
+                  - title: SearXNG
+                    url: http://search.anuj
+                    check-url: http://searxng.default.svc.cluster.local:8080
+                    icon: sh:searxng
+                  - title: Tailscale
+                    url: https://login.tailscale.com/admin/machines
+                    check-url: https://status.tailscale.com
+                    icon: si:tailscale
+
+          # RIGHT COLUMN
+          - size: small
+            widgets:
+              - type: weather
+                location: Pune, India
+                units: metric
+                hour-format: 12h
+              
+              # Immich Custom API Widget
+              - type: custom-api
+                title: Immich Stats
+                icon: sh:immich
+                cache: 1h
+                url: http://immich-external-service.default.svc.cluster.local:2283/api/server/statistics
+                headers:
+                  x-api-key: ${HOMEPAGE_VAR_IMMICH_KEY}
+                  Accept: application/json
+                template: |
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <span>🖼️ Photos:</span>
+                    <strong style="color: var(--positive-color)">{{ .JSON.Int "photos" }}</strong>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>🎥 Videos:</span>
+                    <strong style="color: var(--positive-color)">{{ .JSON.Int "videos" }}</strong>
+                  </div>
+
+              # ArgoCD Custom API Widget
+              - type: custom-api
+                title: ArgoCD
+                icon: si:argocd
+                cache: 1m
+                url: http://argocd-server.argocd.svc.cluster.local:80/api/v1/applications
+                headers:
+                  Authorization: Bearer ${HOMEPAGE_VAR_ARGOCD_TOKEN}
+                  Accept: application/json
+                template: |
+                  <div style="display: flex; justify-content: space-between;">
+                    <span>📦 Synced Apps:</span>
+                    <strong style="color: var(--positive-color)">{{ len (.JSON.Array "items") }}</strong>
+                  </div>
+
+              - type: server-stats
+                servers:
+                  - type: local
+                    name: Yoga k3s
+
+              - type: repository
+                repository: anujj14/homelab
+                commits-limit: 3
+                
+      # ==========================================
+      # PAGE 2: FEED
+      # ==========================================
+      - name: Feed
         columns:
           - size: small
             widgets:
+              - type: clock
+                hour-format: 12h
+                timezone: Asia/Kolkata
+
               - type: calendar
                 first-day-of-week: monday
     
@@ -47,13 +164,6 @@ data:
                 widgets:
                   - type: hacker-news
                   - type: lobsters
-                  - type: videos
-                    channels:
-                      - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
-                      - UCR-DXc1voovS8nhAvccRZhg # Jeff Geerling
-                      - UCsBjURrPoezykLs9EqgamOA # Fireship
-                      - UCBJycsmduvYEL83R_U4JriQ # Marques Brownlee
-                      - UCHnyfMqiRRG1u-2MsSQLbXA # Veritasium
     
               - type: group
                 widgets:
@@ -67,35 +177,27 @@ data:
           - size: small
             widgets:
               - type: weather
-                location: London, United Kingdom
-                units: metric # alternatively "imperial"
-                hour-format: 12h # alternatively "24h"
-                # Optionally hide the location from being displayed in the widget
+                location: Pune, India
+                units: metric 
+                hour-format: 12h 
                 # hide-location: true
     
               - type: markets
                 markets:
-                  - symbol: SPY
-                    name: S&P 500
-                  - symbol: BTC-USD
-                    name: Bitcoin
-                  - symbol: NVDA
-                    name: NVIDIA
-                  - symbol: AAPL
-                    name: Apple
-                  - symbol: MSFT
-                    name: Microsoft
-    
-              - type: releases
-                cache: 1d
-                # Without authentication the Github API allows for up to 60 requests per hour. You can create a
-                # read-only token from your Github account settings and use it here to increase the limit.
-                # token: ...
-                repositories:
-                  - glanceapp/glance
-                  - go-gitea/gitea
-                  - immich-app/immich
-                  - syncthing/syncthing
+                  - symbol: ^NSEI
+                    name: Nifty 50
+                  - symbol: GOLDIETF.NS
+                    name: ICICI Gold ETF
+                  - symbol: SILVERIETF.NS
+                    name: ICICI Silver ETF
+              
+              - type: videos
+                channels:
+                  - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
+                  - UCR-DXc1voovS8nhAvccRZhg # Jeff Geerling
+                  - UCsBjURrPoezykLs9EqgamOA # Fireship
+                  - UCBJycsmduvYEL83R_U4JriQ # Marques Brownlee
+                  - UCHnyfMqiRRG1u-2MsSQLbXA # Veritasium
 
 ---
 apiVersion: apps/v1
@@ -118,6 +220,27 @@ spec:
           image: glanceapp/glance:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: HOMEPAGE_VAR_IMMICH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: immich-key
+            - name: HOMEPAGE_VAR_ADGUARD_USER
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: adguard-user
+            - name: HOMEPAGE_VAR_ADGUARD_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: adguard-pass
+            - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: argocd-token
           volumeMounts:
             - name: config-volume
               mountPath: /app/config/glance.yml
