@@ -1,0 +1,89 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opencloud
+  template:
+    metadata:
+      labels:
+        app: opencloud
+    spec:
+      hostAliases:
+        - ip: "100.86.164.122" 
+          hostnames:
+            - "opencloud.anuj"
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: opencloud
+          image: opencloudeu/opencloud-rolling:7.4.0
+          command: ["/bin/sh", "-c", "opencloud init || true; opencloud server"]
+          env:
+            - name: OC_URL
+              value: "https://opencloud.anuj"
+            - name: OC_LOG_LEVEL
+              value: "info"
+            - name: PROXY_TLS
+              value: "false"
+            - name: OC_INSECURE
+              value: "true"
+            - name: IDM_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opencloud-secrets
+                  key: admin-password
+            - name: OC_DEFAULT_LANGUAGE
+              value: "en"
+          ports:
+            - containerPort: 9200
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/opencloud
+            - name: data
+              mountPath: /var/lib/opencloud
+      volumes:
+        - name: config
+          hostPath:
+            path: /home/anuj/OpenCloud/config
+            type: Directory
+        - name: data
+          hostPath:
+            path: /home/anuj/OpenCloud/data
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencloud-svc
+spec:
+  selector:
+    app: opencloud
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9200
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opencloud-ingress
+spec:
+  rules:
+    - host: opencloud.anuj
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: opencloud-svc
+                port:
+                  number: 80
