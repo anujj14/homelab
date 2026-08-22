@@ -1,0 +1,8 @@
+[Unit]
+Description=Ultimate Homelab Backup Pipeline
+
+[Service]
+Type=oneshot
+# Inhibit sleep so the Yoga laptop doesn't suspend mid-transfer
+ExecStart=/usr/bin/systemd-inhibit --why="Syncing Homelab to GDrive" /home/anuj/.local/bin/ultimate-backup.sh
+StandardOutput=journal
