@@ -19,7 +19,7 @@ data:
   settings.yaml: |
     title: "Anuj's Homelab"
     theme: dark
-    background: https://w.wallhaven.cc/full/po/wallhaven-po2my3.jpg
+    background: https://w.wallhaven.cc/full/9o/wallhaven-9orv7w.png
     backgroundOpacity: 0.7
     backgroundBlur: sm
     cardBlur: xl
