@@ -52,11 +52,11 @@ spec:
       volumes:
         - name: config
           hostPath:
-            path: /home/anuj/OpenCloud/config
+            path: /home/anuj/opencloud/config
             type: Directory
         - name: data
           hostPath:
-            path: /home/anuj/OpenCloud/data
+            path: /home/anuj/opencloud/data
             type: Directory
 ---
 apiVersion: v1
