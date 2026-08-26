@@ -6,6 +6,8 @@ metadata:
     app: navidrome
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: navidrome
@@ -17,20 +19,38 @@ spec:
       containers:
       - name: navidrome
         image: deluan/navidrome:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 4533
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsUser: 1000
+          runAsGroup: 1000
+        startupProbe:
+          httpGet:
+            path: /
+            port: 4533
+          periodSeconds: 10
+          failureThreshold: 7
         readinessProbe:
           httpGet:
             path: /
             port: 4533
-          initialDelaySeconds: 5
           periodSeconds: 5
           failureThreshold: 2
         livenessProbe:
           httpGet:
             path: /
             port: 4533
-          initialDelaySeconds: 10
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 2
@@ -55,7 +75,7 @@ kind: Service
 metadata:
   name: navidrome-service
 spec:
-  type: LoadBalancer # tmp access from hotspot, change to ClusterIP later.
+  type: LoadBalancer # For iPhone hotspot. Switch to ClusterIP 
   selector:
     app: navidrome
   ports:
@@ -68,8 +88,12 @@ kind: Ingress
 metadata:
   name: navidrome-ingress
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - navidrome.snapper-larch.ts.net
   rules:
-  - host: navidrome.anuj
+  - host: navidrome.snapper-larch.ts.net
     http:
       paths:
       - path: /
