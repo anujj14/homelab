@@ -1,10 +1,13 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: opencloud
+  labels:
+    app: opencloud
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: opencloud
@@ -13,10 +16,6 @@ spec:
       labels:
         app: opencloud
     spec:
-      hostAliases:
-        - ip: "100.86.164.122" 
-          hostnames:
-            - "opencloud.anuj"
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -27,7 +26,7 @@ spec:
           command: ["/bin/sh", "-c", "opencloud init || true; opencloud server"]
           env:
             - name: OC_URL
-              value: "https://opencloud.anuj"
+              value: "https://opencloud.snapper-larch.ts.net" 
             - name: OC_LOG_LEVEL
               value: "info"
             - name: PROXY_TLS
@@ -44,6 +43,36 @@ spec:
           ports:
             - containerPort: 9200
               name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          startupProbe:
+            httpGet:
+              path: /
+              port: 9200
+            periodSeconds: 5
+            failureThreshold: 24   # 2 min grace
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
           volumeMounts:
             - name: config
               mountPath: /etc/opencloud
@@ -76,8 +105,12 @@ kind: Ingress
 metadata:
   name: opencloud-ingress
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - opencloud.snapper-larch.ts.net 
   rules:
-    - host: opencloud.anuj
+    - host: opencloud.snapper-larch.ts.net
       http:
         paths:
           - path: /
