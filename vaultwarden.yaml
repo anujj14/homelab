@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +6,8 @@ metadata:
     app: vaultwarden
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: vaultwarden
@@ -18,14 +19,51 @@ spec:
       containers:
       - name: vaultwarden
         image: vaultwarden/server:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         env:
+        - name: DOMAIN
+          value: "https://vaultwarden.snapper-larch.ts.net" 
+        - name: SIGNUPS_ALLOWED
+          value: "false"  # flip to "true" if need to add another account
         - name: ADMIN_TOKEN
           valueFrom:
             secretKeyRef:
               name: vaultwarden-admin
               key: ADMIN_TOKEN
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsUser: 1000
+          runAsGroup: 1000
+        startupProbe:
+          httpGet:
+            path: /alive
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 7
+        readinessProbe:
+          httpGet:
+            path: /alive
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 2
+        livenessProbe:
+          httpGet:
+            path: /alive
+            port: 80
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 2
         volumeMounts:
         - name: vaultwarden-data
           mountPath: /data
@@ -34,7 +72,6 @@ spec:
         hostPath:
           path: /home/anuj/vaultwarden/data
           type: DirectoryOrCreate
-
 ---
 apiVersion: v1
 kind: Service
@@ -48,15 +85,18 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vaultwarden-ingress
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - vaultwarden.snapper-larch.ts.net  
   rules:
-  - host: vaultwarden.anuj
+  - host: vaultwarden.snapper-larch.ts.net
     http:
       paths:
       - path: /
