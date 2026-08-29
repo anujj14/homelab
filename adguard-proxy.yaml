@@ -5,19 +5,24 @@ metadata:
   name: adguard-external-service
 spec:
   ports:
-  - port: 8081
+  - name: http-admin
+    port: 8081
     targetPort: 8081
 
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: adguard-external-service
-subsets:
-- addresses:
-  - ip: 10.42.0.1
-  ports:
-  - port: 8081
+  labels:
+    kubernetes.io/service-name: adguard-external-service
+addressType: IPv4
+ports:
+  - name: http-admin
+    port: 8081
+endpoints:
+  - addresses:
+      - "10.42.0.1"
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -25,8 +30,12 @@ kind: Ingress
 metadata:
   name: adguard-ingress
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - adguard.snapper-larch.ts.net
   rules:
-  - host: adguard.anuj
+  - host: adguard.snapper-larch.ts.net
     http:
       paths:
       - path: /

@@ -5,20 +5,26 @@ metadata:
   name: immich-external-service
 spec:
   ports:
-    - protocol: TCP
-      port: 2283
-      targetPort: 2283
+  - name: http-web
+    protocol: TCP
+    port: 2283
+    targetPort: 2283
 
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: immich-external-service
-subsets:
+  labels:
+    kubernetes.io/service-name: immich-external-service
+addressType: IPv4
+ports:
+  - name: http-web
+    protocol: TCP
+    port: 2283
+endpoints:
   - addresses:
-      - ip: 10.42.0.1 
-    ports:
-      - port: 2283
+      - "10.42.0.1"
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -26,8 +32,12 @@ kind: Ingress
 metadata:
   name: immich-ingress
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - immich.snapper-larch.ts.net
   rules:
-  - host: immich.anuj
+  - host: immich.snapper-larch.ts.net
     http:
       paths:
       - path: /
