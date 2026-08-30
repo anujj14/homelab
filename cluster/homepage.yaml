@@ -79,7 +79,7 @@ data:
           icon: si-archlinux
     - Homelab:
       - Immich:
-          href: http://immich.anuj
+          href: https://immich.snapper-larch.ts.net
           description: Photos
           icon: immich.png
           widget:
@@ -89,7 +89,7 @@ data:
             version: 2
             fields: ["photos", "videos", "storage"] 
       - AdGuard Home:
-          href: http://adguard.anuj
+          href: https://adguard.snapper-larch.ts.net
           description: DNS
           icon: adguard-home.png
           widget:
@@ -98,7 +98,7 @@ data:
             username: "{{HOMEPAGE_VAR_ADGUARD_USER}}"
             password: "{{HOMEPAGE_VAR_ADGUARD_PASS}}"
       - ArgoCD:
-          href: https://argocd.anuj
+          href: https://argocd.snapper-larch.ts.net
           description: GitOps
           icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
           widget:
@@ -107,11 +107,11 @@ data:
             key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
             fields: ["apps", "synced", "healthy", "degraded"]
       - Navidrome:
-          href: http://navidrome.anuj
+          href: https://navidrome.snapper-larch.ts.net
           description: Music
           icon: navidrome.png
       - Vaultwarden:
-          href: https://vaultwarden.anuj
+          href: https://vaultwarden.snapper-larch.ts.net
           description: Passwords
           icon: vaultwarden.png
       - Tailscale:
@@ -145,7 +145,7 @@ data:
           month: short
     - search:
         provider: custom
-        url: http://search.anuj/search?q=
+        url: https://searxng.snapper-larch.ts.net/search?q=
         target: _blank
 ---
 # ClusterRole and ClusterRoleBinding 
@@ -243,7 +243,7 @@ spec:
             runAsGroup: 1000
           env:
           - name: HOMEPAGE_ALLOWED_HOSTS
-            value: "home.anuj"
+            value: "homepage.snapper-larch.ts.net"
           - name: NODE_TLS_REJECT_UNAUTHORIZED
             value: "0"
           - name: HOMEPAGE_VAR_IMMICH_KEY
@@ -272,7 +272,7 @@ spec:
               port: http
               httpHeaders:
               - name: Host
-                value: "home.anuj"
+                value: "homepage.snapper-larch.ts.net"
             initialDelaySeconds: 5
             periodSeconds: 15
           volumeMounts:
@@ -296,9 +296,12 @@ metadata:
   name: homepage-ingress
   namespace: default
 spec:
-  ingressClassName: traefik
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - homepage.snapper-larch.ts.net
   rules:
-  - host: home.anuj
+  - host: homepage.snapper-larch.ts.net
     http:
       paths:
       - path: /

@@ -1,4 +1,3 @@
----
 # Glance Configuration
 apiVersion: v1
 kind: ConfigMap
@@ -40,28 +39,27 @@ data:
                   - dani-garcia/vaultwarden
                   - glanceapp/glance
 
-
           # CENTER COLUMN
           - size: full
             widgets:
               - type: search
                 autofocus: false
-                search-engine: http://search.anuj/search?q={QUERY}
+                search-engine: https://searxng.snapper-larch.ts.net/search?q={QUERY}
                 
               - type: monitor
                 title: Service Links & Status
                 cache: 1m
                 sites:
                   - title: Navidrome
-                    url: http://navidrome.anuj
+                    url: https://navidrome.snapper-larch.ts.net
                     check-url: http://navidrome-service.default.svc.cluster.local:4533
                     icon: sh:navidrome
                   - title: Vaultwarden
-                    url: https://vaultwarden.anuj
+                    url: https://vaultwarden.snapper-larch.ts.net
                     check-url: http://vaultwarden-service.default.svc.cluster.local:80
                     icon: sh:vaultwarden
                   - title: SearXNG
-                    url: http://search.anuj
+                    url: https://searxng.snapper-larch.ts.net
                     check-url: http://searxng.default.svc.cluster.local:8080
                     icon: sh:searxng
                   - title: Tailscale
@@ -76,7 +74,7 @@ data:
                 location: Pune, India
                 units: metric
                 hour-format: 12h
-              
+                
               # Immich Custom API Widget
               - type: custom-api
                 title: Immich Stats
@@ -190,7 +188,7 @@ data:
                     name: ICICI Gold ETF
                   - symbol: SILVERIETF.NS
                     name: ICICI Silver ETF
-              
+                  
               - type: videos
                 channels:
                   - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips
@@ -272,8 +270,12 @@ metadata:
   name: glance-ingress
   namespace: default
 spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - glance.snapper-larch.ts.net
   rules:
-  - host: glance.anuj
+  - host: glance.snapper-larch.ts.net
     http:
       paths:
       - path: /
