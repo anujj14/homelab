@@ -1,7 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: searxng
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: searxng-config
+  namespace: searxng
 data:
   settings.yml: |
     use_default_settings: true
@@ -19,6 +26,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: searxng-redis
+  namespace: searxng
   labels:
     app: searxng-redis
 spec:
@@ -48,6 +56,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: searxng-redis
+  namespace: searxng
 spec:
   selector:
     app: searxng-redis
@@ -59,6 +68,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: searxng
+  namespace: searxng
   labels:
     app: searxng
 spec:
@@ -78,7 +88,7 @@ spec:
         - containerPort: 8080
         env:
         - name: SEARXNG_BASE_URL
-          value: "http://search.anuj/"
+          value: "https://searxng.snapper-larch.ts.net/"
         - name: SEARXNG_SECRET
           valueFrom:
             secretKeyRef:
@@ -104,6 +114,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: searxng
+  namespace: searxng
 spec:
   selector:
     app: searxng
@@ -116,12 +127,14 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: searxng-ingress
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+  namespace: searxng
 spec:
-  ingressClassName: traefik
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+      - searxng.snapper-larch.ts.net
   rules:
-  - host: search.anuj
+  - host: searxng.snapper-larch.ts.net
     http:
       paths:
       - path: /
