@@ -103,7 +103,7 @@ data:
           icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
           widget:
             type: argocd
-            url: http://argocd-server.argocd.svc.cluster.local:80 
+            url: https://argocd.snapper-larch.ts.net
             key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
             fields: ["apps", "synced", "healthy", "degraded"]
       - Navidrome:
@@ -244,8 +244,6 @@ spec:
           env:
           - name: HOMEPAGE_ALLOWED_HOSTS
             value: "homepage.snapper-larch.ts.net"
-          - name: NODE_TLS_REJECT_UNAUTHORIZED
-            value: "0"
           - name: HOMEPAGE_VAR_IMMICH_KEY
             valueFrom:
               secretKeyRef:

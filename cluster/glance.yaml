@@ -60,7 +60,7 @@ data:
                     icon: sh:vaultwarden
                   - title: SearXNG
                     url: https://searxng.snapper-larch.ts.net
-                    check-url: http://searxng.default.svc.cluster.local:8080
+                    check-url: http://searxng.searxng.svc.cluster.local:8080
                     icon: sh:searxng
                   - title: Tailscale
                     url: https://login.tailscale.com/admin/machines
@@ -99,7 +99,7 @@ data:
                 title: ArgoCD
                 icon: si:argocd
                 cache: 1m
-                url: http://argocd-server.argocd.svc.cluster.local:80/api/v1/applications
+                url: https://argocd.snapper-larch.ts.net/api/v1/applications
                 headers:
                   Authorization: Bearer ${HOMEPAGE_VAR_ARGOCD_TOKEN}
                   Accept: application/json
