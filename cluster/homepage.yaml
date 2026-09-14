@@ -103,7 +103,7 @@ data:
           icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
           widget:
             type: argocd
-            url: https://argocd.snapper-larch.ts.net
+            url: https://argocd-server.argocd.svc.cluster.local
             key: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
             fields: ["apps", "synced", "healthy", "degraded"]
       - Navidrome:
