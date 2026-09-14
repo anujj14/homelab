@@ -16,6 +16,10 @@ spec:
       labels:
         app: opencloud
     spec:
+      hostAliases:
+      - ip: "100.66.32.19"
+        hostnames:
+          - "opencloud.snapper-larch.ts.net"
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
