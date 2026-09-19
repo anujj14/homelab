@@ -222,6 +222,11 @@ spec:
 
         server:
           enabled: true
+          serviceMonitor:
+            main:
+              labels:
+                release: kube-prometheus-stack
+
           ingress:
             main:
               enabled: true
