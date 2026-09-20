@@ -208,7 +208,7 @@ spec:
 
         immich:
           metrics:
-            enabled: true
+            enabled: false
           persistence:
             library:
               existingClaim: immich-library
@@ -219,13 +219,6 @@ spec:
             data:
               enabled: true
               type: emptyDir
-
-        server:
-          enabled: true
-          serviceMonitor:
-            main:
-              labels:
-                release: kube-prometheus-stack
 
           ingress:
             main:
