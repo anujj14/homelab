@@ -1,30 +1,56 @@
+#   -2  Namespaces, StorageClass, PersistentVolumes 
+#   -1  CloudNativePG operator (installed via Helm through ArgoCD)
+#    0  The Postgres cluster itself (with the VectorChord extension Immich needs)
+#    1  Immich itself (official immich-charts Helm chart)
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: immich
-  labels:
-    app.kubernetes.io/part-of: immich
   annotations:
-    argocd.argoproj.io/sync-wave: "-10"
-
+    argocd.argoproj.io/sync-wave: "-2"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cnpg-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: manual
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: immich-library-pv
   annotations:
-    argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   capacity:
-    storage: 900Gi
+    storage: 500Gi          
+  volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
+  storageClassName: manual
   hostPath:
     path: /home/anuj/immich-app/library
-    type: Directory
-
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - yoga
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -32,162 +58,120 @@ metadata:
   name: immich-library
   namespace: immich
   annotations:
-    argocd.argoproj.io/sync-wave: "-8"
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: ""
+  storageClassName: manual
   volumeName: immich-library-pv
   resources:
     requests:
-      storage: 900Gi
-
+      storage: 500Gi
 ---
-# PostgreSQL service used by Immich.
 apiVersion: v1
-kind: Service
+kind: PersistentVolume
 metadata:
-  name: immich-postgres
+  name: immich-postgres-pv
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  capacity:
+    storage: 20Gi           
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /home/anuj/immich-app/postgres
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - yoga
+---
+# CloudNativePG operator - manages the Postgres "Cluster" CRD below
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-pg
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  source:
+    repoURL: 'https://cloudnative-pg.github.io/charts'
+    targetRevision: '0.*'
+    chart: cloudnative-pg
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cnpg-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+# Postgres cluster for Immich, with the VectorChord extension 
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-database
   namespace: immich
   annotations:
-    argocd.argoproj.io/sync-wave: "-7"
-  labels:
-    app.kubernetes.io/name: immich-postgres
-    app.kubernetes.io/part-of: immich
+    argocd.argoproj.io/sync-wave: "0"
 spec:
-  clusterIP: None
-  publishNotReadyAddresses: false
-  selector:
-    app.kubernetes.io/name: immich-postgres
-  ports:
-    - name: postgres
-      port: 5432
-      targetPort: postgres
-      protocol: TCP
-
+  instances: 1               
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16.10-0.5.3
+  postgresql:
+    shared_preload_libraries:
+      - "vchord.so"
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      secret:
+        name: immich-database-app   # CNPG auto-generates and stores the password here
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS cube;
+        - CREATE EXTENSION IF NOT EXISTS earthdistance;
+  storage:
+    size: 20Gi
+    storageClass: manual
+    pvcTemplate:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: manual
+      volumeName: immich-postgres-pv
+      resources:
+        requests:
+          storage: 20Gi
 ---
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: immich-postgres
-  namespace: immich
-  annotations:
-    argocd.argoproj.io/sync-wave: "-7"
-  labels:
-    app.kubernetes.io/name: immich-postgres
-    app.kubernetes.io/part-of: immich
-spec:
-  serviceName: immich-postgres
-  replicas: 1
-  podManagementPolicy: OrderedReady
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: immich-postgres
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: immich-postgres
-        app.kubernetes.io/part-of: immich
-    spec:
-      terminationGracePeriodSeconds: 30
-      containers:
-        - name: postgres
-          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: postgres
-              containerPort: 5432
-              protocol: TCP
-          env:
-            - name: POSTGRES_USER
-              value: postgres
-            - name: POSTGRES_DB
-              value: immich
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: immich-postgres-secret
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_INITDB_ARGS
-              value: --data-checksums
-            - name: DB_STORAGE_TYPE
-              value: SSD
-          resources:
-            requests:
-              cpu: 250m
-              memory: 512Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          startupProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - postgres
-                - -d
-                - immich
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 60
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - postgres
-                - -d
-                - immich
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 6
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - postgres
-                - -d
-                - immich
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 6
-  volumeClaimTemplates:
-    - metadata:
-        name: postgres-data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: local-path
-        resources:
-          requests:
-            storage: 5Gi
-
----
+# Immich itself
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: immich
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
-    repoURL: ghcr.io/immich-app/immich-charts
+    repoURL: 'oci://ghcr.io/immich-app/immich-charts'
     chart: immich
-    targetRevision: 0.12.1
+    targetRevision: '0.*'
     helm:
-      releaseName: immich
       values: |
-        defaultPodOptions:
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            fsGroup: 1000
-            fsGroupChangePolicy: OnRootMismatch
-
+        # Shared env vars, applied to every Immich component (server,
+        # machine-learning, etc.) by the bjw-s common library this chart uses.
         controllers:
           main:
             containers:
@@ -197,29 +181,26 @@ spec:
                 env:
                   REDIS_HOSTNAME: '{{ printf "%s-valkey" .Release.Name }}'
                   IMMICH_MACHINE_LEARNING_URL: '{{ printf "http://%s-machine-learning:3003" .Release.Name }}'
-                  DB_HOSTNAME: immich-postgres
-                  DB_USERNAME: postgres
+                  DB_HOSTNAME: immich-database-rw
+                  DB_USERNAME: immich
                   DB_DATABASE_NAME: immich
                   DB_PASSWORD:
                     valueFrom:
                       secretKeyRef:
-                        name: immich-postgres-secret
-                        key: POSTGRES_PASSWORD
+                        name: immich-database-app
+                        key: password
+
+        # Bundled Redis/Valkey (job queue + cache) - fine to lose on restart
+        valkey:
+          enabled: true
 
         immich:
-          metrics:
-            enabled: false
           persistence:
             library:
               existingClaim: immich-library
 
-        valkey:
+        server:
           enabled: true
-          persistence:
-            data:
-              enabled: true
-              type: emptyDir
-
           ingress:
             main:
               enabled: true
@@ -227,32 +208,17 @@ spec:
               hosts:
                 - host: immich.snapper-larch.ts.net
                   paths:
-                    - path: /
-                      pathType: Prefix
+                    - path: "/"
                       service:
                         identifier: main
-                        port: http
               tls:
                 - hosts:
                     - immich.snapper-larch.ts.net
 
         machine-learning:
           enabled: true
-          persistence:
-            cache:
-              enabled: true
-              type: persistentVolumeClaim
-              size: 10Gi
-              accessMode: ReadWriteOnce
-              storageClass: local-path
-
-        serviceMonitor:
-          main:
-            labels:
-              release: kube-prometheus-stack
-
   destination:
-    server: https://kubernetes.default.svc
+    server: 'https://kubernetes.default.svc'
     namespace: immich
   syncPolicy:
     automated:
@@ -260,11 +226,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - PruneLast=true
-    retry:
-      limit: 5
-      backoff:
-        duration: 10s
-        factor: 2
-        maxDuration: 3m
-
