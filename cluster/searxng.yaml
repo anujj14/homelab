@@ -20,28 +20,28 @@ data:
     ui:
       static_use_hash: true
     redis:
-      url: redis://searxng-redis:6379/0
+      url: redis://searxng-valkey:6379/0
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: searxng-redis
+  name: searxng-valkey
   namespace: searxng
   labels:
-    app: searxng-redis
+    app: searxng-valkey
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: searxng-redis
+      app: searxng-valkey
   template:
     metadata:
       labels:
-        app: searxng-redis
+        app: searxng-valkey
     spec:
       containers:
-      - name: redis
-        image: redis:alpine
+      - name: valkey
+        image: valkey/valkey:9-alpine
         ports:
         - containerPort: 6379
         resources:
@@ -55,11 +55,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: searxng-redis
+  name: searxng-valkey
   namespace: searxng
 spec:
   selector:
-    app: searxng-redis
+    app: searxng-valkey
   ports:
   - port: 6379
     targetPort: 6379
