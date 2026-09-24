@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: searxng
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -12,57 +13,65 @@ metadata:
 data:
   settings.yml: |
     use_default_settings: true
+
     server:
       image_proxy: true
+
     general:
       debug: false
       instance_name: "SearXNG"
+
     ui:
       static_use_hash: true
-    redis:
-      url: redis://searxng-redis:6379/0
+
+    valkey:
+      url: valkey://searxng-valkey:6379/0
+
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: searxng-redis
+  name: searxng-valkey
   namespace: searxng
   labels:
-    app: searxng-redis
+    app: searxng-valkey
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: searxng-redis
+      app: searxng-valkey
   template:
     metadata:
       labels:
-        app: searxng-redis
+        app: searxng-valkey
     spec:
       containers:
-      - name: redis
-        image: redis:alpine
-        ports:
-        - containerPort: 6379
-        resources:
-          limits:
-            memory: 256Mi
-            cpu: 250m
-          requests:
-            memory: 64Mi
-            cpu: 50m
+        - name: valkey
+          image: valkey/valkey:9-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: 50m
+            limits:
+              memory: 256Mi
+              cpu: 250m
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: searxng-redis
+  name: searxng-valkey
   namespace: searxng
 spec:
   selector:
-    app: searxng-redis
+    app: searxng-valkey
   ports:
-  - port: 6379
-    targetPort: 6379
+    - name: valkey
+      port: 6379
+      targetPort: 6379
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -82,33 +91,42 @@ spec:
         app: searxng
     spec:
       containers:
-      - name: searxng
-        image: searxng/searxng:latest
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SEARXNG_BASE_URL
-          value: "https://searxng.snapper-larch.ts.net/"
-        - name: SEARXNG_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: searxng-secret
-              key: SEARXNG_SECRET
-        volumeMounts:
-        - name: config
-          mountPath: /etc/searxng/settings.yml
-          subPath: settings.yml
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
+        - name: searxng
+          image: searxng/searxng:latest
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: SEARXNG_BASE_URL
+              value: "https://searxng.snapper-larch.ts.net/"
+
+            - name: SEARXNG_VALKEY_URL
+              value: "valkey://searxng-valkey:6379/0"
+
+            - name: SEARXNG_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: searxng-secret
+                  key: SEARXNG_SECRET
+
+          volumeMounts:
+            - name: config
+              mountPath: /etc/searxng/settings.yml
+              subPath: settings.yml
+
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+
       volumes:
-      - name: config
-        configMap:
-          name: searxng-config
+        - name: config
+          configMap:
+            name: searxng-config
+
 ---
 apiVersion: v1
 kind: Service
@@ -119,9 +137,11 @@ spec:
   selector:
     app: searxng
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8080
       targetPort: 8080
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -132,15 +152,15 @@ spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-      - searxng.snapper-larch.ts.net
+        - searxng.snapper-larch.ts.net
   rules:
-  - host: searxng.snapper-larch.ts.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: searxng
-            port:
-              number: 8080
+    - host: searxng.snapper-larch.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: searxng
+                port:
+                  number: 8080
