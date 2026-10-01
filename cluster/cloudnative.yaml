@@ -55,6 +55,8 @@ spec:
     initdb:
       database: immich
       owner: immich
+      postInitSQL:
+        - ALTER ROLE immich WITH SUPERUSER;
       postInitApplicationSQL:
         - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
         - CREATE EXTENSION IF NOT EXISTS vector;
