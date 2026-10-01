@@ -76,22 +76,34 @@ spec:
               size: 10Gi
               accessMode: ReadWriteOnce
 
-        server:
-          ingress:
-            main:
-              enabled: true
-              className: tailscale
-              annotations:
-                tailscale.com/hostname: immich
-              hosts:
-                - host: immich.snapper-larch.ts.net
-                  paths:
-                    - path: "/"
-                      service:
-                        identifier: main
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immich-ingress
+  namespace: immich
+  annotations:
+    tailscale.com/hostname: immich
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - immich.snapper-larch.ts.net
+  rules:
+    - host: immich.snapper-larch.ts.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: immich-server
+                port:
+                  number: 2283
