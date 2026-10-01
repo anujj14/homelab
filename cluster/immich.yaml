@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-library
+spec:
+  capacity:
+    storage: 100Gi            # nominal — hostPath size is never enforced
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: immich-library
+  hostPath:
+    path: /home/anuj/immich-app/library
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+  namespace: immich
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: immich-library
+  volumeName: immich-library
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich
+  source:
+    repoURL: ghcr.io/immich-app/immich-charts
+    chart: immich
+    targetRevision: 0.13.2
+    helm:
+      values: |
+        controllers:
+          main:
+            containers:
+              main:
+                image:
+                  tag: v3.2.1
+                env:
+                  DB_HOSTNAME: immich-pg-rw
+                  DB_USERNAME: immich
+                  DB_DATABASE_NAME: immich
+                  DB_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: immich-pg-app
+                        key: password
+
+        immich:
+          persistence:
+            library:
+              existingClaim: immich-library
+
+        valkey:
+          enabled: true
+
+        machine-learning:
+          persistence:
+            cache:
+              enabled: true
+              type: persistentVolumeClaim
+              size: 10Gi
+              accessMode: ReadWriteOnce
+
+        server:
+          ingress:
+            main:
+              enabled: true
+              className: tailscale
+              annotations:
+                tailscale.com/hostname: immich
+              hosts:
+                - host: immich.snapper-larch.ts.net
+                  paths:
+                    - path: "/"
+                      service:
+                        identifier: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
