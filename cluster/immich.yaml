@@ -61,12 +61,21 @@ spec:
                         key: password
 
         immich:
+          metrics:
+            enabled: true
           persistence:
             library:
               existingClaim: immich-library
 
         valkey:
           enabled: true
+          controllers: 
+            main:
+              containers:
+                main:
+                  resources:
+                    requests: {cpu: 50m, memory: 64Mi}
+                    limits: {memory: 128Mi}
 
         machine-learning:
           persistence:
@@ -75,6 +84,21 @@ spec:
               type: persistentVolumeClaim
               size: 10Gi
               accessMode: ReadWriteOnce
+          controllers:              
+            main:
+              containers:
+                main:
+                  resources:
+                    requests: {cpu: 500m, memory: 1Gi}
+                    limits: {memory: 4Gi}
+        server: 
+          controllers:
+            main:
+              containers:
+                main:
+                  resources:
+                    requests: {cpu: 250m, memory: 512Mi}
+                    limits: {memory: 2Gi}
 
   syncPolicy:
     automated:
