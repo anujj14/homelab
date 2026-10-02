@@ -114,3 +114,20 @@ spec:
             name: vaultwarden-service
             port:
               number: 80
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: vaultwarden-admin
+  namespace: vaultwarden
+spec:
+  encryptedData:
+    ADMIN_TOKEN: AgATBvT9QkJ8T9zl27KeOlaRbZyCaTi3il6zwkYJdM/8bB13EAY35Ew7keHhSUo5YcGw4198yzD6E++saXdMZpSWJVevg6TjWUp9UgX1hCJrAym2zQkIb694k9gFyK8GnEBLDRS83TirFW4aSEhFkmXSxJNBnkdaBpad2pAIC66QaoHo4vEKVKUjx0Lo71lWtXl6sDD/MkRr1K7mNsjbadCkNHTVCqgdOUIyfTzbKif08qjpgmTYrQUOf86yaf1JuoSMt1EqCHIy5TBGP2Fv9PsUM/i56VWS2r04FQisG1fjcXs95Zaft8Kj4U48eG52onBz0d0ruXmAZti369Ib96S8xUALdN67Zj7YyLUoMug5lFIybD3EdOb1eO5JgcWG1fue/VhxbSvaJjZ9OGzekYufiMprx8+QDUTUDdmYCs7iiMWTduxNSS93WqRZNVOrGvrpeOKttYfpitB77aYvs5dfrloURk7JPWEfOp87irW8C+06K+76fpbyOSWIka7RHusIMicMFxPeuvNbN3aH5jIgY2g/9xWIX24yiX+x6albCWMLR4mjaZFIiEqm89HeqpjRZV37H4IHxLms+4Gv0gyLaXMNHCiJIEQvGVdAS8GLY/0V7UY7vYWHb4TwozSn65VGDio9UxZyQO9+DYtQJgEpDyEHEoQPd3IPpikMtL9bopWbL9+e2Re3hmxlnKm1PO3MwlwYlpVdqFPVd/Q=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: vaultwarden-admin
+      namespace: vaultwarden
+    type: Opaque
+
