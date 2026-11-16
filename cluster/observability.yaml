@@ -25,6 +25,9 @@ spec:
         kubeEtcd:
           enabled: false
         grafana:
+          admin:
+            existingSecret: grafana-admin-credentials
+            existingSecretPasswordKey: password
           ingress:
             enabled: true
             ingressClassName: tailscale
@@ -43,3 +46,18 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: grafana-admin-credentials
+  namespace: monitoring
+spec:
+  encryptedData:
+    password: AgCg7JNTAPDSe6iLnDGpDRFbuZpLCuLeo+l8I609PhLXTnKU/EJg4Lz+FwOfnZJ7Kn605UsSoIq5TOVcAtEvwABd3378eOk3Pl8kMsv/735uUsL1LyCEwO3+FNxG2nfze4kuGt4lUoLhAMkSxF/m8sSncJGLyC0Nb6+mrYTu0mVf6oeOyVEe5DBd30rYOfvBXuS5ASAj4NKBmpYl7ncpQgcfd2gTcVvIClmxmia8QYtA6NY+810cK0WCnU3jBPSB/723HGwtLZgg/hYU8aN3/neAT0L1PhmjmYVuLwY5CdjC0uUISozAWunAv6gxTqtn+vOP/8SwEK5i27h/e13Bl6IwMU5S7dctIwNXDrySivNHSELFW+AcSkkvk4pxX/wqdQmy1u8+X1gxLR99UPnKVvHQ996AQaaX+AoFQYGoTTb1VLULPZAVlDVRqKTabhuJSUrDyIZbhOTbWwgLW7wZcb5Ategc12fP9Bk6HPNWadbI4YumOfu1s7+VGmAlBhsAOp+cNURBBIfPXb2AmvrN6ULjBiJbwMpj9mwZsf4agqNM61BSPSZJgxkWBYz9WHEUtYvO8+bWuwKbLnTpor/Bepaf4NIv06+bW3KkdEpz58B0zmqtRBjzX6cU7WmU7LHq1MW4afhpg54a6men5r6PtFk7DvZPw0PAJtbSkLrgPgHFnkgNSJO9veklCxBxGWTMH49WkkYWQl9RwQP4eLGxCA==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: grafana-admin-credentials
+      namespace: monitoring
