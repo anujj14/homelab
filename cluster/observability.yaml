@@ -11,6 +11,11 @@ spec:
     targetRevision: '91.8.2'
     helm:
       valuesObject:
+        prometheusOperator:
+          admissionWebhooks:
+            enabled: false
+            patch:
+              enabled: false
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
