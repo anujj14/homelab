@@ -24,8 +24,8 @@ spec:
     spec:
       containers:
       - name: navidrome
-        image: deluan/navidrome:latest
-        imagePullPolicy: Always
+        image: deluan/navidrome:0.64.2
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 4533
         resources:
