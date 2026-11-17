@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: glance-config
-  namespace: default
+  namespace: homepage
 data:
   glance.yml: |
     theme:
@@ -52,11 +52,11 @@ data:
                 sites:
                   - title: Navidrome
                     url: https://navidrome.snapper-larch.ts.net
-                    check-url: http://navidrome-service.default.svc.cluster.local:4533
+                    check-url: http://navidrome-service.navidrome.svc.cluster.local:4533
                     icon: sh:navidrome
                   - title: Vaultwarden
                     url: https://vaultwarden.snapper-larch.ts.net
-                    check-url: http://vaultwarden-service.default.svc.cluster.local:80
+                    check-url: http://vaultwarden-service.vaultwarden.svc.cluster.local:80
                     icon: sh:vaultwarden
                   - title: SearXNG
                     url: https://searxng.snapper-larch.ts.net
@@ -80,7 +80,7 @@ data:
                 title: Immich Stats
                 icon: sh:immich
                 cache: 1h
-                url: http://immich-external-service.default.svc.cluster.local:2283/api/server/statistics
+                url: http://immich-server.immich.svc.cluster.local:2283/api/server/statistics
                 headers:
                   x-api-key: ${HOMEPAGE_VAR_IMMICH_KEY}
                   Accept: application/json
@@ -99,7 +99,8 @@ data:
                 title: ArgoCD
                 icon: si:argocd
                 cache: 1m
-                url: https://argocd.snapper-larch.ts.net/api/v1/applications
+                allow-insecure: true
+                url: http://argocd-server.argocd.svc.cluster.local/api/v1/applications
                 headers:
                   Authorization: Bearer ${HOMEPAGE_VAR_ARGOCD_TOKEN}
                   Accept: application/json
@@ -202,7 +203,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: glance
-  namespace: default
+  namespace: homepage
 spec:
   replicas: 1
   selector:
@@ -253,7 +254,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: glance-service
-  namespace: default
+  namespace: homepage
 spec:
   type: ClusterIP
   selector:
@@ -268,7 +269,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: glance-ingress
-  namespace: default
+  namespace: homepage
 spec:
   ingressClassName: tailscale
   tls:
