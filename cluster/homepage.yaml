@@ -1,8 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homepage
+---
 # ServiceAccount
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: homepage
+  namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
 ---
@@ -11,6 +17,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: homepage
+  namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
 data:
@@ -84,7 +91,7 @@ data:
           icon: immich.png
           widget:
             type: immich
-            url: http://immich-external-service.default.svc.cluster.local:2283
+            url: http://immich-server.immich.svc.cluster.local:2283
             key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
             version: 2
             fields: ["photos", "videos", "storage"] 
@@ -162,6 +169,9 @@ rules:
   - apiGroups: ["metrics.k8s.io"]
     resources: ["nodes", "pods"]
     verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -176,13 +186,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: homepage
-    namespace: default
+    namespace: homepage
 ---
 # Service
 apiVersion: v1
 kind: Service
 metadata:
   name: homepage
+  namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
 spec:
@@ -200,6 +211,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: homepage
+  namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
 spec:
@@ -292,7 +304,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: homepage-ingress
-  namespace: default
+  namespace: homepage
 spec:
   ingressClassName: tailscale
   tls:
@@ -315,15 +327,15 @@ kind: SealedSecret
 metadata:
   creationTimestamp: null
   name: homepage-secrets
-  namespace: default
+  namespace: homepage
 spec:
   encryptedData:
-    adguard-pass: AgADf/Lgr1RfON9zT+9xuekZcLhwZ9aV+j/uIA23WEoaKUCk3nGnM9kkWDnwTWTRqwx5mb89+UIoYHjetEDLZEoh3P9Ng+RJbZAPRZeMyNAD1PzbwtwE9H+SaBFmdtLv4fO5N0c11OcvfnGjpajsz5pkK4GO0EzY3BOVUtcsPOg9WB6IpxiP63sUwStevavhg+8OWUOHfOYonBGXrkfIWD7WQ7xAzaexLOLE2AKft3B7zkoEWsa6TlwB+wPuD+mGe4bW6uFkKnZpx7o0T8F74VIrQFZ4eayTGz9stN1jnbSKcZcm/8qyKTLCcGccHKJjb8Bx9F0NnmETRu+B+kfO2SBs50tcMC04Njk07fe32aEVOVP4nsLmfGcAHQuxqRVMlrxn99qf3xXdF/XVKGpLxLswCWekGGQIRQ3udG3CXQxGsHSIjbEwBjZ9ELicWDDiCThl/Fx6POUxlxZYi4dMWYUQEankohaTkIzgHWvwTVHrH/c7MSFFgJ+5QvfPHciblbqsX00z+zYaPCYKfMu/RG6dbjcVaFfYibeKzXuLsQn0ksmzu1XllhWym98U+HGFPrTj/N22iIzNNPLgr2fxvuE6aAPlMTygQRgaHy02Bu1y+kg0AvblpqrqPL3wAosoJoLuUGaGwegwm1gSM+o938iSokp5Q56/3ljfGaqISt9tC956+AIZYtP+1aC+BDzAN8J0CT46PB9qHykBwQ==
-    adguard-user: AgBgTrMBsqKYSWY/PlaMSnF0hb3x8A5P/Fzv1FN/0puCPbLcvikMVKYkVB+64VDaOAOzw2PH/7dJ4DuedB9SUG0StP6FXbh6VF5P8ZGzbkdlpc6HRCD6TAh2vXn8+ppeoyn2CGLHSzjXjl1S6iy8jfOFw9hQSlPr0A9mBQq5xNz78Se++XxMN0JoRm7sHRdHREkj6QrO7ge2ihRXViMJy8WLEYGZmp2KezsmZCgyz7FUP64L7fTrVQXCJCWTrObrFGaV9cQY2dcsYUyME0M+SNMIS98wJGKDHgQ343XPebmIvNYaKVTWQjn8wbaxXiyC8oq28hLLVtYpXzzsFvdxIDC8Wx8mCVq3dcqwS9c6rYt2OPlC+jyk+blicCN735kIDwOTkDkV1WiD/o7lTd6gc+4/6TWWF5nh7/84LpiUodKZpIHRmsEbbn88VoQ4/Z6HLcV+uh03pOuG6L8EIBp24oetm9L495aX00wrsv70JbHHMFftHarW+W+LKcH3Q1iqzSPTBtNNb+6e5/YPoysqiAK3jSVpga8ghzqyJyuSgfP+R0jRTwHfK58CejpfRjHqp/Bm4Lqk8rzn/Gq4ZM1hIqPfVc1NWC5nWtCvuDslj0QUabCjdm9AUm4tpiZMBjVunaQjJzmffqyhavf3oxGx3lIVuVjTmMkw6+NYd6TOuwDIcC7njX/6IytKhYo64FLy3NNwTUj5GlXIzloEm+AA
-    argocd-token: AgA5LPQuvb82WzGONVrg78Jq30MZ1ybZHa7kmxcxGVK3qnoLrfHrHv3r6KysSv1/z+P/VDmP5HVfq4JiUwHSCOlDYnAkoPIcfqIaLAs9hBlk7ZyIFYOD097IyKpGQGaNOriZSe5E4Nzkz76n7JDfixi4EgPcwPlfunJ2Crnhy3DJUYGndR2L4OeWbFpOMi50WFW5OM7wR3pZdmS2OG849MHvCSsfmsMYrbo6cnboRiUwKhZtnVR8JMjaByM/llPv7/Zxq/ZHhbc3e0/ARbOXC2xt7whQVjIT0jdYeb2QW6b+hf0LDqIcYLqZ5/AAJdkNmc6SZRT3ZaVNf9ojs/O6z8gIV/BEfFgzXbCWm0KUJMswwFHj7rQye7E5Nsia9BpBK+/HohN9itZGt97hvZCAB0xIigXBTyE09mW4phK5tXp3mNz72bnOC0cl43so3hRC+HsPxdgvCp7/iIywBvb+DDgaDdr64V2Uh0+V5+jg1AO/sqHRY/OtImugyRGv4K8QZls/TG2Htn3py8KE1LxfKkbMHwDRMfIsK8TozwoY26aIg9xU7qY/aQu3YpgZnXlWqIkOSIFRStlQdOHYDO2l4J8ovBkipzbRYATBwD39i15vAdWWoQu3vYCcrKguwE8IQVBFxB3HOaJEkYp7DHKG/yNGu/hXPgT2BAN+va+W+p62H9BXYLLFWP6lvV+CDaM4Gn2N5P9ECUTk//UbCHDRrrBOlSlFz8cmjnUHt3Fo8rbnEyIU2vMq6LnWklZTlxjyTBEkg9baAiWJqegfDsGfaGnwyKxENSofb+TeDTyzNyRxVGParFcD1zigGmNQWXN3ut9t2qj3BjTnveOIBQfo4dlzsbydlnGRV0gm8hbigRpgW96WuwSR/5esL3jrUxXGYCFNy0flvFyCwtl6GPq8dIWsDrDJRf3s6Kv5t7bOI/IQYC+ciuyfRfF5hL8eaEe58JQmZ4pNfaILkSN+oGUJ8SS868wFf8CxKXhtMzCcihSLOjMmBUb6TlZaTFQiGPD23A==
-    immich-key: AgBOfOIjZzux+rEnMaXECutJ4KSB7Dug8DMYF1VxiNqa9hfN25Xh5MU7GWkOamZ3ABrd0gSjkoGQnfuiY0a/8Vbaw00VAQ4IlJDixDrO7x1jeo9kC6n6NJ+Cfnaav6e53jELqp7rIvbUJjqnEi48iw7cmZNzkjuaAILJGAhuPNJKOs+xosgKK5tEbzx3oqO+Vphvk/JIQZ8nD4D4XkqXKIm635Wg/+ExTQDm+ND4PCjR4P0TvE6ASbbMKMNkDYeFE02cLOf0WqZ6IhI87k/fuTp009tnRki5oRLcFpRKG3Jnn+HF96RLT9BDc74qS7TFAVP3GgVpWlZEURDPkwwITOf1azx51nxHiG2md1SJGmVTqMuAEhpBwchT6Oj4hf6oTw8LHaZh5KPbqccRCnCFlRu+wscwwpEOSS3YkEXTDHVm2WxGtM/89HoucwiOJBiixRk8a/4IVYnfW7RyHSIHs4FAyY5dl4MhbhD1jEeUNBNiFGm3oF8pnKMYG0OaxwVmIEY8RGh9jWrupAQpvAE3L9kmpwrToz7wijviYKQt/XpWDAG17ekl3iBprzGGklrAISaTAccmD8D8iuVA1hbVWjn+Y+sDicds+OTA5sRPRFPiQ75hsivk7ukjSNZsAwHmnkRzche9OpfvOgA2sjetW700vstrIn1IDA++YXOrznwDF+6r7xx/GWs2DSwv4kdFYJPbIrTVvv3sNq0f4A/HzFtfNVKglQo8f5ID4a9DJP5DvnitVcpwFBjuStO1
+    adguard-pass: AgA6HHrScfLU/WcFadbb8aI1dhgh/Ode0anKxW7W/3PEqkTLY7Bds+0Ru+uGoZsc5GYsPGe1miFew101NKMq40+3HLpYet/j7l/LGsvBB/NM4cd8zVTupaulGiEwjYgyYuzCPD7fbbMAUYbXE07+USrrZeW+y/ZO4+UEuUZXOfQRonO3ENnE0ZjXw5zfgwT6ZR9ks5Jm4s7s3P2/3QdJR+q6kl3UeqGH5lJ8hiLoOE96l9lYF87qfPqTJ0ApAn1xMU5gtojHCs0Ocwh+arWNLHPL2SzMsqnXz+NZjp8ZT+kRKgrharsKY2s/ENe+EGEwU55dZCSrtxoi2fnYroLC674j6OIXzce1kj7Cs8w4/e9MCqXxpYCv00BNyVMNfoJkrKyxfGI/VRB//8Xkt0CfLy0eO4gRg4y12iNP2WrILZbaDo02C5sxOKRgUSh4NGHiVXGxwXDNJM3MgJT4N5tK9Up0NVGK7aLz3r4w322TqNrw/l5CjQOPStMexuYEKF/3miJ5LtyejaLkM3ImwCUlI53TBG/rGXqzc1H31YjJCckwpsFiJxq8fb/lIo2vCb/RF+RUSYz2ha4xCyzLuqdj3lo/JrNbbnMpQoIT2hTKqMQ92uqfxdoqI5d4V+yoc0nEeiuSyCYsaQcz5rsrfQKZzFjUENI+/2y7H/JodH3hmnCdwYc+Djdvq/rG7/hfG731j8oWHadmp2XoBHt32w==
+    adguard-user: AgAq0oZ3lCWq5ENV2EtWjRP7OtJx4aSL27tQbt+VpjpG0QznwC+gLg8JeCrpdtAEdhrS4f0KAH7Er2Yg8pg7hrvHF/xBV530DMjl2ElT6KA8gog0O3E/Y5sFp0tbSTRB6mkQ8SSoGVNnsPQ8lTjpp2uKli1/nHmlkVMaAkpp4YVihvkb6lihN8XhptzcU+BszYLzifu8xE3Aaq6Ai2rHRsAfMWLliaFjepI/DEIPZdZcth+S45DQGZqTkkSFlkwXr/im/BFpOnkQyRW3NhxPPG1xt9eC7aVDHDM4uzv292RWjqTwSDjZe0dc3ySrb3hr2xEXIyIK5jsO5WmWVSVGKrgzE5Y9QMUPTWG4LCDPVXJSAgJpIJK0sKpFqTgnc70Rs5btpj3bSP6XoS4GroY6wdWxkJn1nOootuRKjjGRneQZViecC59cnKVIEV7zZEiqxB/ajRW/KSwQPcb1llPcsutlJgW9bSsqV+2HHJX/B78LuXHgC40clr5lk4wvNrvjkt26dIhCEgp8HkkzEThX0mZGjMont1m/pHJwMJRpEeTKRoJR9td5RhyyNjKqTZX843V6aG2CT51wwhyHP69x3CSuFxsd87Yt2GNKlf5ZZyHIy7UBmSaRcPIXLTlHHQj9lafDjAQNlzYvgpdZsFNEtn4vDo7Bw9kPTOODY4mcyupNuo2h8bc0YdiidldH7Km+8H2WgEihnjxxHbfVModM
+    argocd-token: AgCoNM29EGQZzwmGa1Gm1nynu+U1XrlTEzNxr3TLrzGAY8hhoadsgFGSpyRbjRC/9iNbZ4KyLNR0JX9fY2Wh7sZNNPGbbQX0tfKuFp1XGnOlhi0MTZWE3+WR4p5WmoiSSo91k8G9ySGpcuLxxK/fXbdkSA+++fETyKL7giTvmUewHym2RMBB8UVJXPhRXXgbdwEv8VQDDcVo2FCr3XIuYfqK4uwb5kX/+FtKcPk48qOaqzDhqzmrO9+GS4Kb86B/bGHTe60mW69hAMyCIjvoPOd5LATGzE+BE8pIf8REXjHyAEa+xdKyAUIJ8Cg0n4QMav1oTtAd9rtgNqHz++lwI91civIcteFrzg8jMRv3DRYznnXktN3HkfcFSe1vJWs0f2jMlTCS7LR++i0bTFVa60vjJ0onuOychRCmGaQM95e3QEe7G3K/S6NpxUOb13p0r8aImzvbxpbuD6LmbGCnOAVXhomjtH+4mEWhT1t37g80MufW2TCX4mwMrZpkGpMiGoUzIMfAVQjedJN5uuJyd9ZyiFIixb3BmzzG9/lS6yoFrfiA9U2HjfU4Vonpurm6gDVWC3bIB0eIsDegoB778C9SJBAA5Bb4g76+nxkOcB5pQJ2+QGqRyZgmLSU0ouhqnVuJNjf7iAmJNGZL4Jju+Uo2v8B43Lu2c80qy76FFC/djWZ2gNKVWPGshE9XOzDpV/zMQBrRlaEXd+mqOBlXPe0HedREZo/WYGv7BbZv/6+ReFk8q/hT/ioQsPzPYxUn8FEC6grOmvsdLzNF2ak9X9VhDWFUSxBCIYdd4rZMAoGq99fsH885+PUG+rMffj41Gc2bipKYIsX9q7nORkPWXmGrlmwdyuFaC+tXcci4YvHGDatSWjlNCEAQvsTySx0v3UuAVZxz0a1iqdk9sARPnLErcVEbFdKJI02WPnZkQusytshHCkHLn6+SxrgiJJE8sifb83kiJp0dXi4KJS4E4t1G8uKsVjNutunmZIClBjYRyInugKVYcgfNFyke0oKo9g==
+    immich-key: AgAPTbPS6p6tuy9H9USjIcINjr/nZEXB9petEiNIcS0eGP8NciTQHOGG/9f/6Hjhp+aUQWofGSr93NlWU8uIWsGMakfrTu0lICdAy75Rf710t5eap3n/DFSE96Jfhd/DGeengXaEs5RGu63+PlmJZHNehTNX9X6LA5RxlmrnV8CCdm8epNh9hsnzqxe6iSB2+mon5XAJ4NFsviB6fF3/2qH9UvkEi7N6pcKi1FwYqlfltdUxGS1ci9pLOaO+qHMkEIjGj9SGBiTSCW7Y8HidCpOPtfg7VqQMcjertLVXvwOhZfB1VRsI8gJcTHu+oQ4BYNxf3bnByUc/hON12/nuiFMUYP9gdLR6ncqnSDRLJ/awbxlGHVQRCxSjRrHP1MQXEYSNyu1ViQt8t5WGhMtx2St09G0QxSTaRkRXXnn66hKyuiwwuznfpdbB7ZLSM4qjkhIQjlF8/E0KxyV/Xdy2PFTiGNRWtzpyZhhhRqyJbeu7mMyawdCG0neRfeCaL+RyJN/kMUQwmLSnWZ/1XJ/JKm4fyLqrw64VCBKw7sY6N73v9wmIgfOBTUJegLFp1CKlQByOjH7jxDnye9xO1MnOp85a8g2YJP6Zdw0Nflv+UIGsW66LQcvbSBJgZ25rxvFgGMi1U1bdTYOvfBufWdsWsG8g4o7scpjOxalHUwNjuKu+aG0dqfyqqqzy2YE2txupa9hkWMp68jnKeeP61xtvJJyp2IDJVXWygKGijniGLPu/H5veVfuDF/HfwRbq
   template:
     metadata:
       creationTimestamp: null
       name: homepage-secrets
-      namespace: default
+      namespace: homepage
