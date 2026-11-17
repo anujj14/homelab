@@ -61,3 +61,24 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
         - CREATE EXTENSION IF NOT EXISTS vector;
         - CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
+---
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: immich-pg-isolation
+  namespace: immich
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-pg
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: immich
+      ports:
+        - protocol: TCP
+          port: 5432
