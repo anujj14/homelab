@@ -57,7 +57,7 @@ data:
     }
 
     .services-list li:hover > div {
-      transform: translateY(-2px) !important; 
+      transform: translateY(-2px) !important;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
       border-color: var(--glass-hover-border) !important;
       background-color: rgba(45, 45, 45, 0.5) !important;
@@ -69,7 +69,7 @@ data:
       border-radius: 14px !important;
     }
   custom.js: ""
-  bookmarks.yaml: "" 
+  bookmarks.yaml: ""
   services.yaml: |
     - Bookmarks:
       - GitHub:
@@ -94,7 +94,7 @@ data:
             url: http://immich-server.immich.svc.cluster.local:2283
             key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
             version: 2
-            fields: ["photos", "videos", "storage"] 
+            fields: ["photos", "videos", "storage"]
       - AdGuard Home:
           href: https://adguard.snapper-larch.ts.net
           description: DNS
@@ -155,7 +155,7 @@ data:
         url: https://searxng.snapper-larch.ts.net/search?q=
         target: _blank
 ---
-# ClusterRole and ClusterRoleBinding 
+# ClusterRole and ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -299,7 +299,7 @@ spec:
         - name: logs
           emptyDir: {}
 ---
-# Ingress 
+# Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

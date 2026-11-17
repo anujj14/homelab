@@ -69,7 +69,7 @@ spec:
 
         valkey:
           enabled: true
-          controllers: 
+          controllers:
             main:
               containers:
                 main:
@@ -84,14 +84,14 @@ spec:
               type: persistentVolumeClaim
               size: 10Gi
               accessMode: ReadWriteOnce
-          controllers:              
+          controllers:
             main:
               containers:
                 main:
                   resources:
                     requests: {cpu: 500m, memory: 1Gi}
                     limits: {memory: 4Gi}
-        server: 
+        server:
           controllers:
             main:
               containers:

@@ -30,7 +30,7 @@ spec:
         - containerPort: 80
         env:
         - name: DOMAIN
-          value: "https://vaultwarden.snapper-larch.ts.net" 
+          value: "https://vaultwarden.snapper-larch.ts.net"
         - name: SIGNUPS_ALLOWED
           value: "false"  # flip to "true" if need to add another account
         - name: ADMIN_TOKEN
@@ -102,7 +102,7 @@ spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-      - vaultwarden.snapper-larch.ts.net  
+      - vaultwarden.snapper-larch.ts.net
   rules:
   - host: vaultwarden.snapper-larch.ts.net
     http:

@@ -9,7 +9,7 @@ data:
     theme:
       primary-color: 140 70 50
       radius: 18px
-      
+
     pages:
       # ==========================================
       # PAGE 1: HOMELAB
@@ -21,7 +21,7 @@ data:
             widgets:
               - type: calendar
                 first-day-of-week: monday
-                
+
               # AdGuard Native DNS Stats Widget
               - type: dns-stats
                 title: AdGuard Home
@@ -45,7 +45,7 @@ data:
               - type: search
                 autofocus: false
                 search-engine: https://searxng.snapper-larch.ts.net/search?q={QUERY}
-                
+
               - type: monitor
                 title: Service Links & Status
                 cache: 1m
@@ -74,7 +74,7 @@ data:
                 location: Pune, India
                 units: metric
                 hour-format: 12h
-                
+
               # Immich Custom API Widget
               - type: custom-api
                 title: Immich Stats
@@ -118,7 +118,7 @@ data:
               - type: repository
                 repository: anujj14/homelab
                 commits-limit: 3
-                
+
       # ==========================================
       # PAGE 2: FEED
       # ==========================================
@@ -132,7 +132,7 @@ data:
 
               - type: calendar
                 first-day-of-week: monday
-    
+
               - type: rss
                 limit: 10
                 collapse-after: 3
@@ -147,7 +147,7 @@ data:
                   - url: https://samwho.dev/rss.xml
                   - url: https://ishadeed.com/feed.xml
                     title: Ahmad Shadeed
-    
+
               - type: twitch-channels
                 channels:
                   - theprimeagen
@@ -156,14 +156,14 @@ data:
                   - cohhcarnage
                   - christitustech
                   - EJ_SA
-    
+
           - size: full
             widgets:
               - type: group
                 widgets:
                   - type: hacker-news
                   - type: lobsters
-    
+
               - type: group
                 widgets:
                   - type: reddit
@@ -172,15 +172,15 @@ data:
                   - type: reddit
                     subreddit: selfhosted
                     show-thumbnails: true
-    
+
           - size: small
             widgets:
               - type: weather
                 location: Pune, India
-                units: metric 
-                hour-format: 12h 
+                units: metric
+                hour-format: 12h
                 # hide-location: true
-    
+
               - type: markets
                 markets:
                   - symbol: ^NSEI
@@ -189,7 +189,7 @@ data:
                     name: ICICI Gold ETF
                   - symbol: SILVERIETF.NS
                     name: ICICI Silver ETF
-                  
+
               - type: videos
                 channels:
                   - UCXuqSBlHAE6Xw-yeJA0Tunw # Linus Tech Tips

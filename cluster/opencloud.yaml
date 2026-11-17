@@ -36,7 +36,7 @@ spec:
           command: ["/bin/sh", "-c", "opencloud init || true; opencloud server"]
           env:
             - name: OC_URL
-              value: "https://opencloud.snapper-larch.ts.net" 
+              value: "https://opencloud.snapper-larch.ts.net"
             - name: OC_LOG_LEVEL
               value: "info"
             - name: PROXY_TLS
@@ -120,7 +120,7 @@ spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-      - opencloud.snapper-larch.ts.net 
+      - opencloud.snapper-larch.ts.net
   rules:
     - host: opencloud.snapper-larch.ts.net
       http:
