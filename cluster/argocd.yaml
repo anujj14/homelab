@@ -7,10 +7,23 @@ spec:
   project: default
   source:
     repoURL: 'https://argoproj.github.io/argo-helm'
-    targetRevision: '10.9.6' 
+    targetRevision: '10.9.6'
     chart: argo-cd
     helm:
       values: |
+        dex:
+          enabled: false
+        notifications:
+          enabled: false
+        applicationSet:
+          enabled: false
+        configs:
+          cm:
+            accounts.widgets: apiKey
+            timeout.reconciliation: 600s
+          rbac:
+            policy.csv: |
+              g, widgets, role:readonly
         server:
           ingress:
             enabled: true
@@ -19,13 +32,7 @@ spec:
               - argocd.snapper-larch.ts.net
             tls:
               - hosts:
-                - argocd.snapper-larch.ts.net
-        configs:
-          cm:
-            accounts.widgets: apiKey
-          rbac:
-            policy.csv: |
-              g, widgets, role:readonly
+                  - argocd.snapper-larch.ts.net
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd
@@ -43,7 +50,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/anujj14/homelab.git'
-    path: cluster 
+    path: cluster
     targetRevision: HEAD
   destination:
     server: 'https://kubernetes.default.svc'
