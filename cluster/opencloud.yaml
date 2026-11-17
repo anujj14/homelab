@@ -1,7 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opencloud
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: opencloud
+  namespace: opencloud
   labels:
     app: opencloud
 spec:
@@ -17,7 +23,7 @@ spec:
         app: opencloud
     spec:
       hostAliases:
-      - ip: "100.81.65.40"
+      - ip: "100.101.66.24"
         hostnames:
           - "opencloud.snapper-larch.ts.net"
       securityContext:
@@ -26,7 +32,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: opencloud
-          image: opencloudeu/opencloud-rolling:7.4.0
+          image: opencloudeu/opencloud-rolling:9.1.0
           command: ["/bin/sh", "-c", "opencloud init || true; opencloud server"]
           env:
             - name: OC_URL
@@ -96,6 +102,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: opencloud-svc
+  namespace: opencloud
 spec:
   selector:
     app: opencloud
@@ -108,6 +115,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: opencloud-ingress
+  namespace: opencloud
 spec:
   ingressClassName: tailscale
   tls:
@@ -130,13 +138,12 @@ kind: SealedSecret
 metadata:
   creationTimestamp: null
   name: opencloud-secrets
-  namespace: default
+  namespace: opencloud
 spec:
   encryptedData:
-    admin-password: AgCCjPORuQAUP7dNM2XluXPff5hpY3LUYBwWeJSnhIbPBvxWHRTRaRIaFfXKFVORudhPzAG8bCl9uK/whG6AoBm2gGTEKXJ6kpW8Mv4tBSygEJ8F4HY35JV4xE2TYps/sk5bv59leE0LiS5RvXrf6Wb3nZZMjwP1Mp85ZXC1+pp8hkhPSyZ1P1+dkJVqVr5prdu3jym/gtY2OsYiZU8lwalsc3NMZXbEZDXk6+q2fhlxVa9uqI2CnJKJHOo3DTakxo4ZBFH1zBbjQvz1Bb6AlIXvfRFmVCO1jFRBMw3XhASIvFqV3GVTr1oYPv+6D464anYhmm/Lc6+QedYQ/3OINL0oovEkxvEYjDvMgSYmu8APAQdW5k9a3nRBWr316Z5E2cAdKMwGPzWjdxlRXLTLOjhg9f87NVjLLf++mb63iHDGDMCnBWgV9e0/wyIWdXMEULNSqjIJ3DwIN0TC3fp0gkd2wub+oTfF9OBTlWu2U7v/BXsrnlEnupo9uli7ZoolscZ5rnB8f6SGrvhr11LxODTSLwN9ESd2ULFjUpRdGsISNt6UsURNFqSiAazfGkjB7bDfHojcDICD2lG+vGocfVXoGGD3F9WJtZdMmifOZawvbPdXTPX5QrwUhQ30CtB+0PoKnDeMJl3i0ftSZlVBDsncLA4jCkzviohTWfEEKvQe3hS8cqOr3y5wccg8ewE8HhjJm/qdyONMffXAQmvkrQ==
+    admin-password: AgAhtfh9vG2xgg9U0FjFnsaXI4SqAy36/Uuhp8zVM/hF/C1zTRpCRMYQrzVosn8536t1WjGvRz9iGmqLvlH7Pm3CQEuZsL0Opm1xHzDoDgCgxizwY0QWY/ZyjQuqyRKC2JCkC9AMGnoHdObrxhe+SKdZ2js2+uV/qjJRbIK4poHITszkLdnkeVJgoyHdCbZpVVuL2xMrGabjn6k4Esdcbt2SnE6Qitq/gF+lsHAPs9xA8Fyh6c5IZ791+NY/6m0oooYXEqEI6kn3UmLx7W7zD/AYG5i38k1eHqcnJkG9TO6+psTmYP3y+mpSGqRyExK4iOUyWvdzDX/V3U7D45Vq+a1fnyvaGS/V/oGrPDAatG2udkjwPXDcaEmjmWnCkrb1NUHGdpFD9uDSwqcRBws8GjymZlVmTD1tTUhuyoEkjWSC/HzdTxdSU3XKGwI1CEkzIkCkwN4Uxb3kfi5geEz21r0fhYfGSv35HVk+SLLV2Ns3kHgxisBspKTTIXI8/Mzg/uktRjPQAhPlAeAxDdI8qyEAZpqsKxbQ1Fuw/m5jxkXv1k7ai9SSlK7gk/+xxHkL6b61Pbk/nUrTMyo1qO/tVrmW4OHtEB+TIADXtQmu585YEwN2vptDp2zY88Q0KEvohjNkLplko+N+/ed8LomZtJetr6pokasDfhja9I26nKmtgoqAdAZKczfO1870P8KCbqYHP9OwOoE9mcZ7/Mj/TA==
   template:
     metadata:
       creationTimestamp: null
       name: opencloud-secrets
-      namespace: default
-    type: Opaque
+      namespace: opencloud
