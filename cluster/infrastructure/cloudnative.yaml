@@ -27,6 +27,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
@@ -39,7 +41,13 @@ spec:
   instances: 1
   storage:
     size: 10Gi
-  imageName: ghcr.io/cloudnative-pg/postgresql:18-standard-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-standard-trixie
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
   postgresql:
     shared_preload_libraries:
       - "vchord.so"
@@ -62,12 +70,13 @@ spec:
         - CREATE EXTENSION IF NOT EXISTS vector;
         - CREATE EXTENSION IF NOT EXISTS earthdistance CASCADE;
 ---
----
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: immich-pg-isolation
   namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   podSelector:
     matchLabels:
@@ -76,9 +85,23 @@ spec:
     - Ingress
   ingress:
     - from:
-        - namespaceSelector:
+        - podSelector:
             matchLabels:
-              kubernetes.io/metadata.name: immich
+              app.kubernetes.io/name: server
       ports:
         - protocol: TCP
           port: 5432
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - protocol: TCP
+          port: 8000
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9187
