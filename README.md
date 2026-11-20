@@ -24,36 +24,51 @@
 ## 🧭 Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'ui-sans-serif, system-ui, sans-serif', 'lineColor': '#8b949e' }}}%%
+%%{init: {
+  'theme': 'base',
+  'flowchart': { 'curve': 'basis', 'nodeSpacing': 50, 'rankSpacing': 70, 'padding': 24, 'htmlLabels': true },
+  'themeVariables': {
+    'fontSize': '22px',
+    'fontFamily': 'JetBrains Mono, Fira Code, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    'background': '#151515',
+    'primaryColor': '#202020',
+    'primaryTextColor': '#e8e8d3',
+    'primaryBorderColor': '#605958',
+    'lineColor': '#888888',
+    'edgeLabelBackground': '#151515',
+    'clusterBkg': '#1c1c1c',
+    'clusterBorder': '#3a3a3a'
+  }
+}}%%
 flowchart TB
-    client(["<b>💻 Tailnet Devices</b><br/>laptop · phone · mac"]):::external
-    git[("<b>🐙 anujj14/homelab</b><br/>GitOps source · main")]:::external
-    drive[("<b>☁️ Google Drive</b><br/>off-site encrypted backups")]:::external
+    client(["<b>💻 Tailnet Devices</b><br/><i>laptop · phone · mac</i>"]):::external
+    git[("<b>🐙 anujj14/homelab</b><br/><i>GitOps source · main</i>")]:::external
+    drive[("<b>☁️ Google Drive</b><br/><i>off-site encrypted backups</i>")]:::external
 
     subgraph host["🖥️ Host — Arch Linux (Lenovo Yoga)"]
         direction LR
-        adguard["<b>🛡️ AdGuard Home</b><br/>Podman quadlet · :53 / :8081"]:::hostNode
-        timer["<b>⏱️ Nightly Backup · 03:00</b><br/>systemd-inhibit · restic + rclone"]:::hostNode
+        adguard["<b>🛡️ AdGuard Home</b><br/><i>Podman quadlet · :53 / :8081</i>"]:::hostNode
+        timer["<b>⏱️ Nightly Backup · 03:00</b><br/><i>systemd-inhibit · restic + rclone</i>"]:::hostNode
     end
 
     subgraph k3s["☸️ k3s — Single-Node Cluster"]
         direction TB
-        argocd["<b>🔄 Argo CD</b><br/>App-of-Apps · gitops-sync"]:::core
+        argocd["<b>🔄 Argo CD</b><br/><i>App-of-Apps · gitops-sync</i>"]:::core
 
-        subgraph w0["Wave 0 · Infrastructure"]
+        subgraph w0["🧱 Wave 0 · Infrastructure"]
             direction LR
-            tsop["<b>🔐 Tailscale Operator</b><br/>Ingress + Auto TLS"]:::core
-            cnpg["<b>🐘 CloudNativePG</b><br/>Postgres Operator"]:::core
-            sealed["<b>🔑 SealedSecrets</b><br/>Controller"]:::core
+            tsop["<b>🔐 Tailscale Operator</b><br/><i>Ingress + Auto TLS</i>"]:::core
+            cnpg["<b>🐘 CloudNativePG</b><br/><i>Postgres Operator</i>"]:::core
+            sealed["<b>🔑 SealedSecrets</b><br/><i>Controller</i>"]:::core
         end
 
-        subgraph w1["Wave 1 · Data & Secrets"]
+        subgraph w1["💾 Wave 1 · Data & Secrets"]
             direction LR
-            pg[("<b>🗄️ immich-pg</b><br/>PG18.7 + VectorChord")]:::data
-            ss["<b>🔒 SealedSecrets</b><br/>+ ConfigMaps"]:::data
+            pg[("<b>🗄️ immich-pg</b><br/><i>PG18.7 + VectorChord</i>")]:::data
+            ss["<b>🔒 SealedSecrets</b><br/><i>+ ConfigMaps</i>"]:::data
         end
 
-        subgraph w2["Wave 2 · Workloads & Monitoring"]
+        subgraph w2["🚀 Wave 2 · Workloads & Monitoring"]
             direction TB
             subgraph w2a[" "]
                 direction LR
@@ -67,7 +82,7 @@ flowchart TB
                 sx["<b>🔍 SearXNG</b>"]:::app
                 dash["<b>📊 Homepage · Glance</b>"]:::app
                 obs["<b>📈 Prometheus · Grafana</b>"]:::app
-                bridge["<b>🌉 AdGuard Bridge</b><br/>10.42.0.1:8081"]:::hostNode
+                bridge["<b>🌉 AdGuard Bridge</b><br/><i>10.42.0.1:8081</i>"]:::hostNode
             end
         end
     end
@@ -82,20 +97,25 @@ flowchart TB
     pg -->|"SQL + Vectors"| immich
     timer -->|"encrypted restic + archive"| drive
 
-    classDef external fill:#1f2430,stroke:#7aa2f7,stroke-width:2px,color:#e6edf3,font-size:15px
-    classDef hostNode fill:#1f2430,stroke:#e0af68,stroke-width:2px,color:#e6edf3,font-size:15px
-    classDef core fill:#1f2430,stroke:#bb9af7,stroke-width:2px,color:#e6edf3,font-size:15px
-    classDef data fill:#1f2430,stroke:#2ac3de,stroke-width:2px,color:#e6edf3,font-size:15px
-    classDef app fill:#1f2430,stroke:#9ece6a,stroke-width:2px,color:#e6edf3,font-size:15px
+    %% ── Jellybeans: flat dark nodes, muted outlines ──
+    classDef external fill:#202020,stroke:#8197bf,stroke-width:1.5px,color:#e8e8d3,rx:10,ry:10
+    classDef hostNode fill:#202020,stroke:#ffb964,stroke-width:1.5px,color:#e8e8d3,rx:10,ry:10
+    classDef core     fill:#202020,stroke:#605958,stroke-width:1.5px,color:#e8e8d3,rx:10,ry:10
+    classDef data     fill:#202020,stroke:#605958,stroke-width:1.5px,color:#e8e8d3,rx:10,ry:10
+    classDef app      fill:#202020,stroke:#605958,stroke-width:1.5px,color:#e8e8d3,rx:10,ry:10
 
-    style host fill:transparent,stroke:#e0af68,stroke-width:1.5px,stroke-dasharray:5 5
-    style k3s fill:transparent,stroke:#7aa2f7,stroke-width:2px
-    style w0 fill:transparent,stroke:#bb9af7,stroke-dasharray:4 4
-    style w1 fill:transparent,stroke:#2ac3de,stroke-dasharray:4 4
-    style w2 fill:transparent,stroke:#9ece6a,stroke-dasharray:4 4
-    style w2a fill:transparent,stroke:none
-    style w2b fill:transparent,stroke:none
+    %% ── containers: neutral panels, color only in the titles ──
+    style host fill:#1c1c1c,stroke:#ffb964,stroke-width:1.5px,stroke-dasharray:6 4,color:#ffb964,rx:14,ry:14
+    style k3s  fill:#181818,stroke:#8197bf,stroke-width:1.5px,color:#8197bf,rx:16,ry:16
+    style w0   fill:#1c1c1c,stroke:#3a3a3a,stroke-width:1px,stroke-dasharray:4 4,color:#c6b6ee,rx:12,ry:12
+    style w1   fill:#1c1c1c,stroke:#3a3a3a,stroke-width:1px,stroke-dasharray:4 4,color:#8fbfdc,rx:12,ry:12
+    style w2   fill:#1c1c1c,stroke:#3a3a3a,stroke-width:1px,stroke-dasharray:4 4,color:#99ad6a,rx:12,ry:12
+    style w2a  fill:none,stroke:none
+    style w2b  fill:none,stroke:none
 
+    %% ── edges: quiet grey, GitOps pull dashed in blue ──
+    linkStyle default stroke:#888888,stroke-width:1.5px
+    linkStyle 1 stroke:#8197bf,stroke-width:1.5px,stroke-dasharray:6 5
 ```
 
 One Lenovo Yoga laptop running Arch Linux is the whole datacenter. k3s runs the workloads, Argo CD pulls this repo recursively (`cluster/infrastructure/` and `cluster/apps/`) and reconciles drift, and every Ingress goes through the Tailscale Kubernetes Operator — answering at `https://<app>.snapper-larch.ts.net` with automatic TLS, tailnet-only, zero ports forwarded to the internet.
