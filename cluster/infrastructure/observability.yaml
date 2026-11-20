@@ -1,8 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: grafana-admin-credentials
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  encryptedData:
+    admin-password: AgCde5R3WqMZ4Dnlm7PkqtMbQgkd4ILHPUGXwXQic1ORHpXTl8lO0cF+ufiR/heq1j58HgL5Q7zu7Jt6HA3gAnh7wXAq8lpk3lSpuDLbTk9EbZz75gJ4cC+PGaNmP/9ug6rGysRm06zNxwF7IaXYo8Lr8kquakmlTxfDk7AM5p2aOjVWMIRI5oxv+ouom3PQ/mOn0tUy/qwJvuo0RIsq7OBuSFyHKoHOAvMimfX2zNSMaFMVqVLp1kT7XTwoTrEsSmyKKL2MDvAMohSmhuWwFo9ZkOTIeQ0jLGd/kF8xdM6ogfcluLtKeC5+9SSbIDGLmLC27OMWQNp26EucHtz0Z9581cJ5v/D9wGqgqf/QYfsRH/NYcGwkHwBKa1VYhVxAbTkn4KMAJC+sARhtVquMY9r146N21qNKNXDUKAK8OaZ7T0t37TGSePMqNshvO4eCUc4FNG1lGy7bA9Z3J69awUzDXGpgY3qoLZlDnIFMHROdV+hxTLvdtPE25UKldcTxOXF5NVxvkR6RM6Wdc1zdX5HMeKAkbv4xrJB2zDNPDBIkSPPNa4htVrY9VGBsAqzXGfCbksbzV4YozniEvvH+4y3CwBjQkonXyvCNuj/5ba1NNjZUN3k2FG9LcX7HaNfHNbXn4BKM0DyGSDUpOz9YrMfJciUo9LocFSG2Q4SWr1zl15DybBagj6L/t/VNY6KgqHK3oIlwLMa36jhHw+L/yQ==
+    admin-user: AgCeC0n7zEbA59wFJXBAJArWD8tDwS9a6Uilwp4TBYwhSN7xjQVMono/ZA1YQ6jgi5LG3hcRfILlqIm8F/NRbOL5mc6RwxImVUCZGLYcLD2UYRCK1zKnf6FYAcL3UGl838VyzBwPrcwEqqVbTGiE2KXvfRgiyBcfrx/rTUWYaVuIh41/0CvJ6E6qj/6c5qSeS92PGa7BLPWRbJHLRmEYTp9wimWoUL4U7WU70Ci6VHNiDRB2SKQPaMaUHYlz/H6F9rK+fjftWCOPboEOnoc9FGrX/TzvnQuKOtkj4t9fAvOwUGXT1XvUddv6gOrmgZbA+mTfh3vF9LU4yT0ubsTaydLFPwKUQir9P9AvMDlvEqrBVPFIRYk3pTi4OaOzRpMPHm3UdxvPX8y3o4fNLtP8IOQru1HAre4B+u6KvwSKYFcZQ8h4CvMsKdqdhPFIFL2wGsZZGP2rviTqiW/fbXnSK3mmx071igVSZ9iEeNzw3UmdCeagdrnMd/+q+dzCRtBsF9HWQDNt+JrfrOr5KMaiEqkI3B0RMCm9CxcKPkJDcOkBvgn5XdvMLMvu7jZGB62lOZqiPsR/ABM43G57SbiiUH5E4y95Y0iSuMT1tYeRCfAoX8dzGZm1c6O//6e20UQtm7li9tjJdqsRA5yKvIMGiUn/JAnwWmNF0JurTW0RMFs779ThVFAw/PH7exs8YNRB+g1iBFhYbw==
+  template:
+    metadata:
+      name: grafana-admin-credentials
+      namespace: monitoring
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: kube-prometheus-stack
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
@@ -96,19 +121,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  creationTimestamp: null
-  name: grafana-admin-credentials
-  namespace: monitoring
-spec:
-  encryptedData:
-    admin-password: AgCde5R3WqMZ4Dnlm7PkqtMbQgkd4ILHPUGXwXQic1ORHpXTl8lO0cF+ufiR/heq1j58HgL5Q7zu7Jt6HA3gAnh7wXAq8lpk3lSpuDLbTk9EbZz75gJ4cC+PGaNmP/9ug6rGysRm06zNxwF7IaXYo8Lr8kquakmlTxfDk7AM5p2aOjVWMIRI5oxv+ouom3PQ/mOn0tUy/qwJvuo0RIsq7OBuSFyHKoHOAvMimfX2zNSMaFMVqVLp1kT7XTwoTrEsSmyKKL2MDvAMohSmhuWwFo9ZkOTIeQ0jLGd/kF8xdM6ogfcluLtKeC5+9SSbIDGLmLC27OMWQNp26EucHtz0Z9581cJ5v/D9wGqgqf/QYfsRH/NYcGwkHwBKa1VYhVxAbTkn4KMAJC+sARhtVquMY9r146N21qNKNXDUKAK8OaZ7T0t37TGSePMqNshvO4eCUc4FNG1lGy7bA9Z3J69awUzDXGpgY3qoLZlDnIFMHROdV+hxTLvdtPE25UKldcTxOXF5NVxvkR6RM6Wdc1zdX5HMeKAkbv4xrJB2zDNPDBIkSPPNa4htVrY9VGBsAqzXGfCbksbzV4YozniEvvH+4y3CwBjQkonXyvCNuj/5ba1NNjZUN3k2FG9LcX7HaNfHNbXn4BKM0DyGSDUpOz9YrMfJciUo9LocFSG2Q4SWr1zl15DybBagj6L/t/VNY6KgqHK3oIlwLMa36jhHw+L/yQ==
-    admin-user: AgCeC0n7zEbA59wFJXBAJArWD8tDwS9a6Uilwp4TBYwhSN7xjQVMono/ZA1YQ6jgi5LG3hcRfILlqIm8F/NRbOL5mc6RwxImVUCZGLYcLD2UYRCK1zKnf6FYAcL3UGl838VyzBwPrcwEqqVbTGiE2KXvfRgiyBcfrx/rTUWYaVuIh41/0CvJ6E6qj/6c5qSeS92PGa7BLPWRbJHLRmEYTp9wimWoUL4U7WU70Ci6VHNiDRB2SKQPaMaUHYlz/H6F9rK+fjftWCOPboEOnoc9FGrX/TzvnQuKOtkj4t9fAvOwUGXT1XvUddv6gOrmgZbA+mTfh3vF9LU4yT0ubsTaydLFPwKUQir9P9AvMDlvEqrBVPFIRYk3pTi4OaOzRpMPHm3UdxvPX8y3o4fNLtP8IOQru1HAre4B+u6KvwSKYFcZQ8h4CvMsKdqdhPFIFL2wGsZZGP2rviTqiW/fbXnSK3mmx071igVSZ9iEeNzw3UmdCeagdrnMd/+q+dzCRtBsF9HWQDNt+JrfrOr5KMaiEqkI3B0RMCm9CxcKPkJDcOkBvgn5XdvMLMvu7jZGB62lOZqiPsR/ABM43G57SbiiUH5E4y95Y0iSuMT1tYeRCfAoX8dzGZm1c6O//6e20UQtm7li9tjJdqsRA5yKvIMGiUn/JAnwWmNF0JurTW0RMFs779ThVFAw/PH7exs8YNRB+g1iBFhYbw==
-  template:
-    metadata:
-      creationTimestamp: null
-      name: grafana-admin-credentials
-      namespace: monitoring
