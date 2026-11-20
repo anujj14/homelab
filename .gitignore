@@ -1,0 +1,20 @@
+# Unencrypted secrets & keys
+*.key
+*.pem
+*.crt
+*.p12
+.env
+.env.*
+*-secret.yaml
+*-secrets.yaml
+!cluster/**/*
+
+# Kubeconfigs & local cluster state
+*kubeconfig*
+k3s.yaml
+
+# Temporary dumps & editor files
+repo-dump.txt
+*.bak
+*.swp
+.DS_Store
