@@ -3,6 +3,10 @@
   "extends": [
     "config:recommended"
   ],
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "prConcurrentLimit": 5,
   "kubernetes": {
     "managerFilePatterns": [
       "/^cluster/.+\\.ya?ml$/"
@@ -13,10 +17,29 @@
       "/^cluster/.+\\.ya?ml$/"
     ]
   },
-  "packageRules": [
+  "customManagers": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": false
+      "customType": "regex",
+      "description": "Track Immich server/ML app tag inside Argo CD Helm values",
+      "managerFilePatterns": [
+        "/^cluster/apps/immich\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "tag:\\s*(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)"
+      ],
+      "depNameTemplate": "ghcr.io/immich-app/immich-server",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Podman quadlet container images in system/",
+      "managerFilePatterns": [
+        "/^system/.+\\.container$/"
+      ],
+      "matchStrings": [
+        "Image=(?<depName>[^:\\s]+):(?<currentValue>[^\\s]+)"
+      ],
+      "datasourceTemplate": "docker"
     }
   ]
 }

@@ -14,7 +14,7 @@
 k3s.yaml
 
 # Temporary dumps & editor files
-repo-dump.txt
+repo-dump*.txt
 *.bak
 *.swp
 .DS_Store

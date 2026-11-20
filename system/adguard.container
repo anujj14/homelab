@@ -3,16 +3,15 @@ Description=AdGuard Home DNS Server
 After=network-online.target
 
 [Container]
-Image=docker.io/adguard/adguardhome:latest
+Image=docker.io/adguard/adguardhome:v0.107.78
 ContainerName=adguardhome
 
 Volume=/home/anuj/adguard/work:/opt/adguardhome/work:Z
 Volume=/home/anuj/adguard/conf:/opt/adguardhome/conf:Z
 
-# Map ports (Port 80 is mapped to 8081 to avoid clashing with your k3s Ingress)
+# Map ports (Port 80 is mapped to 8081 to avoid clashing with k3s)
 PublishPort=53:53/udp
 PublishPort=53:53/tcp
-PublishPort=3000:3000/tcp
 PublishPort=8081:80/tcp
 
 [Service]
