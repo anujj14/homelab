@@ -3,13 +3,32 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: searxng
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: searxng-secret
+  namespace: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  encryptedData:
+    SEARXNG_SECRET: AgCTDka5u0iNdlQqg0O0SXmjqQqQNuYk8HjCY6g/mPLQBHWFhBXYFMEpQlpjZ3B/j/V78m735W1KiNAy/7ut3JpM7naaE/23Iw+4jGdtXge9vbSqyBmKYXuD95nthFUNwSZGqLOQx2Crlt629dE23vdQ/Dq15uIZFrxWwZ8BATbrggyvicbs9D9lyz/LdzZorYOkONdesXZ1ofDQuPqQ93/5Nv8y3gp8FLpB6hzmIhCvLNm6LQop+/sMfLYuvlWZOj8Ab/Vwrfe9VZZYD6PYLLBtnR/aiKUsi4bheIabW5CjfmGDc9AEoJ2pa7dKr+VB/L9e/uiFpijbCueLOLNpleBku89QeSKNMmDmjhPkoBOmMBsNgqDbadfF4AY6LCsL9ng1bs7/4PU3WsMfXBaIG02nkUu72DILC4oqws2oCKcOiEqfA/p0F8Hv+1PiQJIVKoQCbQJ40N4B6DqPBBG8gqUxNb5btSPa60bP3YF9/0ZYXK57n19XfWfqq4I+KIY63S9a1Qz5vahqRGaYNQPpyBYRvgJnW8vjIxCRcKek4rvSqtsh5SWUmRQW3XRN3DMpS7djkOiV3u2tqa59vATDm9W19ocqLsz+q7YcI7/ME3OsTQwIc/OogCSWTbnUuSUIdb65rz3JEZjXhOw87AR112aJuwb4evTKiHl34c4CYqFvJNiaITd/7Cl+0MLEVa/UMjJOLk246nwzE3ULpFuJEHg/4krQEp1EYqNrSRcjQW+sk6Cxj8LwZepKv+3R7pGXC8TqFn98jRSc/R9gFSKTsfR3
+  template:
+    metadata:
+      name: searxng-secret
+      namespace: searxng
+    type: Opaque
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: searxng-config
   namespace: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 data:
   settings.yml: |
     use_default_settings: true
@@ -26,7 +45,6 @@ data:
 
     valkey:
       url: valkey://searxng-valkey:6379/0
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -35,6 +53,8 @@ metadata:
   namespace: searxng
   labels:
     app: searxng-valkey
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   selector:
@@ -45,25 +65,46 @@ spec:
       labels:
         app: searxng-valkey
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: valkey
           image: valkey/valkey:9-alpine
           ports:
             - containerPort: 6379
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 10
+            periodSeconds: 15
           resources:
             requests:
               memory: 64Mi
               cpu: 50m
             limits:
               memory: 256Mi
-              cpu: 250m
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: searxng-valkey
   namespace: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     app: searxng-valkey
@@ -71,7 +112,6 @@ spec:
     - name: valkey
       port: 6379
       targetPort: 6379
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -80,6 +120,8 @@ metadata:
   namespace: searxng
   labels:
     app: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   selector:
@@ -90,49 +132,61 @@ spec:
       labels:
         app: searxng
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: searxng
           image: searxng/searxng:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-
+          securityContext:
+            allowPrivilegeEscalation: false
           env:
             - name: SEARXNG_BASE_URL
               value: "https://searxng.snapper-larch.ts.net/"
-
             - name: SEARXNG_VALKEY_URL
               value: "valkey://searxng-valkey:6379/0"
-
             - name: SEARXNG_SECRET
               valueFrom:
                 secretKeyRef:
                   name: searxng-secret
                   key: SEARXNG_SECRET
-
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 15
           volumeMounts:
             - name: config
               mountPath: /etc/searxng/settings.yml
               subPath: settings.yml
-
           resources:
             requests:
               memory: 256Mi
               cpu: 100m
             limits:
               memory: 512Mi
-              cpu: 500m
-
       volumes:
         - name: config
           configMap:
             name: searxng-config
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: searxng
   namespace: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   selector:
     app: searxng
@@ -141,20 +195,21 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: 8080
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: searxng-ingress
   namespace: searxng
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-        - searxng.snapper-larch.ts.net
+        - searxng
   rules:
-    - host: searxng.snapper-larch.ts.net
+    - host: searxng
       http:
         paths:
           - path: /
