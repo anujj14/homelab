@@ -2,8 +2,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 ---
-# ServiceAccount
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -11,8 +12,27 @@ metadata:
   namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 ---
-# ConfigMap
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: homepage-secrets
+  namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  encryptedData:
+    adguard-pass: AgA6HHrScfLU/WcFadbb8aI1dhgh/Ode0anKxW7W/3PEqkTLY7Bds+0Ru+uGoZsc5GYsPGe1miFew101NKMq40+3HLpYet/j7l/LGsvBB/NM4cd8zVTupaulGiEwjYgyYuzCPD7fbbMAUYbXE07+USrrZeW+y/ZO4+UEuUZXOfQRonO3ENnE0ZjXw5zfgwT6ZR9ks5Jm4s7s3P2/3QdJR+q6kl3UeqGH5lJ8hiLoOE96l9lYF87qfPqTJ0ApAn1xMU5gtojHCs0Ocwh+arWNLHPL2SzMsqnXz+NZjp8ZT+kRKgrharsKY2s/ENe+EGEwU55dZCSrtxoi2fnYroLC674j6OIXzce1kj7Cs8w4/e9MCqXxpYCv00BNyVMNfoJkrKyxfGI/VRB//8Xkt0CfLy0eO4gRg4y12iNP2WrILZbaDo02C5sxOKRgUSh4NGHiVXGxwXDNJM3MgJT4N5tK9Up0NVGK7aLz3r4w322TqNrw/l5CjQOPStMexuYEKF/3miJ5LtyejaLkM3ImwCUlI53TBG/rGXqzc1H31YjJCckwpsFiJxq8fb/lIo2vCb/RF+RUSYz2ha4xCyzLuqdj3lo/JrNbbnMpQoIT2hTKqMQ92uqfxdoqI5d4V+yoc0nEeiuSyCYsaQcz5rsrfQKZzFjUENI+/2y7H/JodH3hmnCdwYc+Djdvq/rG7/hfG731j8oWHadmp2XoBHt32w==
+    adguard-user: AgAq0oZ3lCWq5ENV2EtWjRP7OtJx4aSL27tQbt+VpjpG0QznwC+gLg8JeCrpdtAEdhrS4f0KAH7Er2Yg8pg7hrvHF/xBV530DMjl2ElT6KA8gog0O3E/Y5sFp0tbSTRB6mkQ8SSoGVNnsPQ8lTjpp2uKli1/nHmlkVMaAkpp4YVihvkb6lihN8XhptzcU+BszYLzifu8xE3Aaq6Ai2rHRsAfMWLliaFjepI/DEIPZdZcth+S45DQGZqTkkSFlkwXr/im/BFpOnkQyRW3NhxPPG1xt9eC7aVDHDM4uzv292RWjqTwSDjZe0dc3ySrb3hr2xEXIyIK5jsO5WmWVSVGKrgzE5Y9QMUPTWG4LCDPVXJSAgJpIJK0sKpFqTgnc70Rs5btpj3bSP6XoS4GroY6wdWxkJn1nOootuRKjjGRneQZViecC59cnKVIEV7zZEiqxB/ajRW/KSwQPcb1llPcsutlJgW9bSsqV+2HHJX/B78LuXHgC40clr5lk4wvNrvjkt26dIhCEgp8HkkzEThX0mZGjMont1m/pHJwMJRpEeTKRoJR9td5RhyyNjKqTZX843V6aG2CT51wwhyHP69x3CSuFxsd87Yt2GNKlf5ZZyHIy7UBmSaRcPIXLTlHHQj9lafDjAQNlzYvgpdZsFNEtn4vDo7Bw9kPTOODY4mcyupNuo2h8bc0YdiidldH7Km+8H2WgEihnjxxHbfVModM
+    argocd-token: AgCoNM29EGQZzwmGa1Gm1nynu+U1XrlTEzNxr3TLrzGAY8hhoadsgFGSpyRbjRC/9iNbZ4KyLNR0JX9fY2Wh7sZNNPGbbQX0tfKuFp1XGnOlhi0MTZWE3+WR4p5WmoiSSo91k8G9ySGpcuLxxK/fXbdkSA+++fETyKL7giTvmUewHym2RMBB8UVJXPhRXXgbdwEv8VQDDcVo2FCr3XIuYfqK4uwb5kX/+FtKcPk48qOaqzDhqzmrO9+GS4Kb86B/bGHTe60mW69hAMyCIjvoPOd5LATGzE+BE8pIf8REXjHyAEa+xdKyAUIJ8Cg0n4QMav1oTtAd9rtgNqHz++lwI91civIcteFrzg8jMRv3DRYznnXktN3HkfcFSe1vJWs0f2jMlTCS7LR++i0bTFVa60vjJ0onuOychRCmGaQM95e3QEe7G3K/S6NpxUOb13p0r8aImzvbxpbuD6LmbGCnOAVXhomjtH+4mEWhT1t37g80MufW2TCX4mwMrZpkGpMiGoUzIMfAVQjedJN5uuJyd9ZyiFIixb3BmzzG9/lS6yoFrfiA9U2HjfU4Vonpurm6gDVWC3bIB0eIsDegoB778C9SJBAA5Bb4g76+nxkOcB5pQJ2+QGqRyZgmLSU0ouhqnVuJNjf7iAmJNGZL4Jju+Uo2v8B43Lu2c80qy76FFC/djWZ2gNKVWPGshE9XOzDpV/zMQBrRlaEXd+mqOBlXPe0HedREZo/WYGv7BbZv/6+ReFk8q/hT/ioQsPzPYxUn8FEC6grOmvsdLzNF2ak9X9VhDWFUSxBCIYdd4rZMAoGq99fsH885+PUG+rMffj41Gc2bipKYIsX9q7nORkPWXmGrlmwdyuFaC+tXcci4YvHGDatSWjlNCEAQvsTySx0v3UuAVZxz0a1iqdk9sARPnLErcVEbFdKJI02WPnZkQusytshHCkHLn6+SxrgiJJE8sifb83kiJp0dXi4KJS4E4t1G8uKsVjNutunmZIClBjYRyInugKVYcgfNFyke0oKo9g==
+    immich-key: AgAPTbPS6p6tuy9H9USjIcINjr/nZEXB9petEiNIcS0eGP8NciTQHOGG/9f/6Hjhp+aUQWofGSr93NlWU8uIWsGMakfrTu0lICdAy75Rf710t5eap3n/DFSE96Jfhd/DGeengXaEs5RGu63+PlmJZHNehTNX9X6LA5RxlmrnV8CCdm8epNh9hsnzqxe6iSB2+mon5XAJ4NFsviB6fF3/2qH9UvkEi7N6pcKi1FwYqlfltdUxGS1ci9pLOaO+qHMkEIjGj9SGBiTSCW7Y8HidCpOPtfg7VqQMcjertLVXvwOhZfB1VRsI8gJcTHu+oQ4BYNxf3bnByUc/hON12/nuiFMUYP9gdLR6ncqnSDRLJ/awbxlGHVQRCxSjRrHP1MQXEYSNyu1ViQt8t5WGhMtx2St09G0QxSTaRkRXXnn66hKyuiwwuznfpdbB7ZLSM4qjkhIQjlF8/E0KxyV/Xdy2PFTiGNRWtzpyZhhhRqyJbeu7mMyawdCG0neRfeCaL+RyJN/kMUQwmLSnWZ/1XJ/JKm4fyLqrw64VCBKw7sY6N73v9wmIgfOBTUJegLFp1CKlQByOjH7jxDnye9xO1MnOp85a8g2YJP6Zdw0Nflv+UIGsW66LQcvbSBJgZ25rxvFgGMi1U1bdTYOvfBufWdsWsG8g4o7scpjOxalHUwNjuKu+aG0dqfyqqqzy2YE2txupa9hkWMp68jnKeeP61xtvJJyp2IDJVXWygKGijniGLPu/H5veVfuDF/HfwRbq
+  template:
+    metadata:
+      name: homepage-secrets
+      namespace: homepage
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -20,6 +40,8 @@ metadata:
   namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 data:
   kubernetes.yaml: |
     mode: cluster
@@ -155,13 +177,14 @@ data:
         url: https://searxng.snapper-larch.ts.net/search?q=
         target: _blank
 ---
-# ClusterRole and ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 rules:
   - apiGroups: [""]
     resources: ["namespaces", "pods", "nodes"]
@@ -179,6 +202,8 @@ metadata:
   name: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -188,7 +213,6 @@ subjects:
     name: homepage
     namespace: homepage
 ---
-# Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -196,6 +220,8 @@ metadata:
   namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   type: ClusterIP
   ports:
@@ -206,7 +232,6 @@ spec:
   selector:
     app.kubernetes.io/name: homepage
 ---
-# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -214,6 +239,8 @@ metadata:
   namespace: homepage
   labels:
     app.kubernetes.io/name: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   revisionHistoryLimit: 3
   replicas: 1
@@ -231,10 +258,29 @@ spec:
       automountServiceAccountToken: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: init-config
-          image: busybox:latest
+          image: busybox:1.37.0
+          imagePullPolicy: IfNotPresent
           command: ['sh', '-c', 'cp -r /configmap/. /app/config/']
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: configmap
               mountPath: /configmap
@@ -248,42 +294,57 @@ spec:
             - name: http
               containerPort: 3000
               protocol: TCP
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
+            capabilities:
+              drop:
+                - ALL
           env:
-          - name: HOMEPAGE_ALLOWED_HOSTS
-            value: "homepage.snapper-larch.ts.net"
-          - name: HOMEPAGE_VAR_IMMICH_KEY
-            valueFrom:
-              secretKeyRef:
-                name: homepage-secrets
-                key: immich-key
-          - name: HOMEPAGE_VAR_ADGUARD_USER
-            valueFrom:
-              secretKeyRef:
-                name: homepage-secrets
-                key: adguard-user
-          - name: HOMEPAGE_VAR_ADGUARD_PASS
-            valueFrom:
-              secretKeyRef:
-                name: homepage-secrets
-                key: adguard-pass
-          - name: HOMEPAGE_VAR_ARGOCD_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: homepage-secrets
-                key: argocd-token
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "homepage.snapper-larch.ts.net"
+            - name: HOMEPAGE_VAR_IMMICH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: immich-key
+            - name: HOMEPAGE_VAR_ADGUARD_USER
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: adguard-user
+            - name: HOMEPAGE_VAR_ADGUARD_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: adguard-pass
+            - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: homepage-secrets
+                  key: argocd-token
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: "homepage.snapper-larch.ts.net"
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/healthcheck
               port: http
               httpHeaders:
-              - name: Host
-                value: "homepage.snapper-larch.ts.net"
-            initialDelaySeconds: 5
+                - name: Host
+                  value: "homepage.snapper-larch.ts.net"
+            initialDelaySeconds: 10
             periodSeconds: 15
           volumeMounts:
             - name: config
@@ -299,43 +360,26 @@ spec:
         - name: logs
           emptyDir: {}
 ---
-# Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: homepage-ingress
   namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-      - homepage.snapper-larch.ts.net
+        - homepage
   rules:
-  - host: homepage.snapper-larch.ts.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: homepage
-            port:
-              number: 3000
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  creationTimestamp: null
-  name: homepage-secrets
-  namespace: homepage
-spec:
-  encryptedData:
-    adguard-pass: AgA6HHrScfLU/WcFadbb8aI1dhgh/Ode0anKxW7W/3PEqkTLY7Bds+0Ru+uGoZsc5GYsPGe1miFew101NKMq40+3HLpYet/j7l/LGsvBB/NM4cd8zVTupaulGiEwjYgyYuzCPD7fbbMAUYbXE07+USrrZeW+y/ZO4+UEuUZXOfQRonO3ENnE0ZjXw5zfgwT6ZR9ks5Jm4s7s3P2/3QdJR+q6kl3UeqGH5lJ8hiLoOE96l9lYF87qfPqTJ0ApAn1xMU5gtojHCs0Ocwh+arWNLHPL2SzMsqnXz+NZjp8ZT+kRKgrharsKY2s/ENe+EGEwU55dZCSrtxoi2fnYroLC674j6OIXzce1kj7Cs8w4/e9MCqXxpYCv00BNyVMNfoJkrKyxfGI/VRB//8Xkt0CfLy0eO4gRg4y12iNP2WrILZbaDo02C5sxOKRgUSh4NGHiVXGxwXDNJM3MgJT4N5tK9Up0NVGK7aLz3r4w322TqNrw/l5CjQOPStMexuYEKF/3miJ5LtyejaLkM3ImwCUlI53TBG/rGXqzc1H31YjJCckwpsFiJxq8fb/lIo2vCb/RF+RUSYz2ha4xCyzLuqdj3lo/JrNbbnMpQoIT2hTKqMQ92uqfxdoqI5d4V+yoc0nEeiuSyCYsaQcz5rsrfQKZzFjUENI+/2y7H/JodH3hmnCdwYc+Djdvq/rG7/hfG731j8oWHadmp2XoBHt32w==
-    adguard-user: AgAq0oZ3lCWq5ENV2EtWjRP7OtJx4aSL27tQbt+VpjpG0QznwC+gLg8JeCrpdtAEdhrS4f0KAH7Er2Yg8pg7hrvHF/xBV530DMjl2ElT6KA8gog0O3E/Y5sFp0tbSTRB6mkQ8SSoGVNnsPQ8lTjpp2uKli1/nHmlkVMaAkpp4YVihvkb6lihN8XhptzcU+BszYLzifu8xE3Aaq6Ai2rHRsAfMWLliaFjepI/DEIPZdZcth+S45DQGZqTkkSFlkwXr/im/BFpOnkQyRW3NhxPPG1xt9eC7aVDHDM4uzv292RWjqTwSDjZe0dc3ySrb3hr2xEXIyIK5jsO5WmWVSVGKrgzE5Y9QMUPTWG4LCDPVXJSAgJpIJK0sKpFqTgnc70Rs5btpj3bSP6XoS4GroY6wdWxkJn1nOootuRKjjGRneQZViecC59cnKVIEV7zZEiqxB/ajRW/KSwQPcb1llPcsutlJgW9bSsqV+2HHJX/B78LuXHgC40clr5lk4wvNrvjkt26dIhCEgp8HkkzEThX0mZGjMont1m/pHJwMJRpEeTKRoJR9td5RhyyNjKqTZX843V6aG2CT51wwhyHP69x3CSuFxsd87Yt2GNKlf5ZZyHIy7UBmSaRcPIXLTlHHQj9lafDjAQNlzYvgpdZsFNEtn4vDo7Bw9kPTOODY4mcyupNuo2h8bc0YdiidldH7Km+8H2WgEihnjxxHbfVModM
-    argocd-token: AgCoNM29EGQZzwmGa1Gm1nynu+U1XrlTEzNxr3TLrzGAY8hhoadsgFGSpyRbjRC/9iNbZ4KyLNR0JX9fY2Wh7sZNNPGbbQX0tfKuFp1XGnOlhi0MTZWE3+WR4p5WmoiSSo91k8G9ySGpcuLxxK/fXbdkSA+++fETyKL7giTvmUewHym2RMBB8UVJXPhRXXgbdwEv8VQDDcVo2FCr3XIuYfqK4uwb5kX/+FtKcPk48qOaqzDhqzmrO9+GS4Kb86B/bGHTe60mW69hAMyCIjvoPOd5LATGzE+BE8pIf8REXjHyAEa+xdKyAUIJ8Cg0n4QMav1oTtAd9rtgNqHz++lwI91civIcteFrzg8jMRv3DRYznnXktN3HkfcFSe1vJWs0f2jMlTCS7LR++i0bTFVa60vjJ0onuOychRCmGaQM95e3QEe7G3K/S6NpxUOb13p0r8aImzvbxpbuD6LmbGCnOAVXhomjtH+4mEWhT1t37g80MufW2TCX4mwMrZpkGpMiGoUzIMfAVQjedJN5uuJyd9ZyiFIixb3BmzzG9/lS6yoFrfiA9U2HjfU4Vonpurm6gDVWC3bIB0eIsDegoB778C9SJBAA5Bb4g76+nxkOcB5pQJ2+QGqRyZgmLSU0ouhqnVuJNjf7iAmJNGZL4Jju+Uo2v8B43Lu2c80qy76FFC/djWZ2gNKVWPGshE9XOzDpV/zMQBrRlaEXd+mqOBlXPe0HedREZo/WYGv7BbZv/6+ReFk8q/hT/ioQsPzPYxUn8FEC6grOmvsdLzNF2ak9X9VhDWFUSxBCIYdd4rZMAoGq99fsH885+PUG+rMffj41Gc2bipKYIsX9q7nORkPWXmGrlmwdyuFaC+tXcci4YvHGDatSWjlNCEAQvsTySx0v3UuAVZxz0a1iqdk9sARPnLErcVEbFdKJI02WPnZkQusytshHCkHLn6+SxrgiJJE8sifb83kiJp0dXi4KJS4E4t1G8uKsVjNutunmZIClBjYRyInugKVYcgfNFyke0oKo9g==
-    immich-key: AgAPTbPS6p6tuy9H9USjIcINjr/nZEXB9petEiNIcS0eGP8NciTQHOGG/9f/6Hjhp+aUQWofGSr93NlWU8uIWsGMakfrTu0lICdAy75Rf710t5eap3n/DFSE96Jfhd/DGeengXaEs5RGu63+PlmJZHNehTNX9X6LA5RxlmrnV8CCdm8epNh9hsnzqxe6iSB2+mon5XAJ4NFsviB6fF3/2qH9UvkEi7N6pcKi1FwYqlfltdUxGS1ci9pLOaO+qHMkEIjGj9SGBiTSCW7Y8HidCpOPtfg7VqQMcjertLVXvwOhZfB1VRsI8gJcTHu+oQ4BYNxf3bnByUc/hON12/nuiFMUYP9gdLR6ncqnSDRLJ/awbxlGHVQRCxSjRrHP1MQXEYSNyu1ViQt8t5WGhMtx2St09G0QxSTaRkRXXnn66hKyuiwwuznfpdbB7ZLSM4qjkhIQjlF8/E0KxyV/Xdy2PFTiGNRWtzpyZhhhRqyJbeu7mMyawdCG0neRfeCaL+RyJN/kMUQwmLSnWZ/1XJ/JKm4fyLqrw64VCBKw7sY6N73v9wmIgfOBTUJegLFp1CKlQByOjH7jxDnye9xO1MnOp85a8g2YJP6Zdw0Nflv+UIGsW66LQcvbSBJgZ25rxvFgGMi1U1bdTYOvfBufWdsWsG8g4o7scpjOxalHUwNjuKu+aG0dqfyqqqzy2YE2txupa9hkWMp68jnKeeP61xtvJJyp2IDJVXWygKGijniGLPu/H5veVfuDF/HfwRbq
-  template:
-    metadata:
-      creationTimestamp: null
-      name: homepage-secrets
-      namespace: homepage
+    - host: homepage
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homepage
+                port:
+                  number: 3000
