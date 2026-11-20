@@ -51,7 +51,9 @@ spec:
   source:
     repoURL: 'https://github.com/anujj14/homelab.git'
     path: cluster
-    targetRevision: HEAD
+    targetRevision: main
+    directory:
+      recurse: true
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
@@ -59,3 +61,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - SkipDryRunOnMissingResource=true
