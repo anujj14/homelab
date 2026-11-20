@@ -2,6 +2,24 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: vaultwarden-admin
+  namespace: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  encryptedData:
+    ADMIN_TOKEN: AgATBvT9QkJ8T9zl27KeOlaRbZyCaTi3il6zwkYJdM/8bB13EAY35Ew7keHhSUo5YcGw4198yzD6E++saXdMZpSWJVevg6TjWUp9UgX1hCJrAym2zQkIb694k9gFyK8GnEBLDRS83TirFW4aSEhFkmXSxJNBnkdaBpad2pAIC66QaoHo4vEKVKUjx0Lo71lWtXl6sDD/MkRr1K7mNsjbadCkNHTVCqgdOUIyfTzbKif08qjpgmTYrQUOf86yaf1JuoSMt1EqCHIy5TBGP2Fv9PsUM/i56VWS2r04FQisG1fjcXs95Zaft8Kj4U48eG52onBz0d0ruXmAZti369Ib96S8xUALdN67Zj7YyLUoMug5lFIybD3EdOb1eO5JgcWG1fue/VhxbSvaJjZ9OGzekYufiMprx8+QDUTUDdmYCs7iiMWTduxNSS93WqRZNVOrGvrpeOKttYfpitB77aYvs5dfrloURk7JPWEfOp87irW8C+06K+76fpbyOSWIka7RHusIMicMFxPeuvNbN3aH5jIgY2g/9xWIX24yiX+x6albCWMLR4mjaZFIiEqm89HeqpjRZV37H4IHxLms+4Gv0gyLaXMNHCiJIEQvGVdAS8GLY/0V7UY7vYWHb4TwozSn65VGDio9UxZyQO9+DYtQJgEpDyEHEoQPd3IPpikMtL9bopWbL9+e2Re3hmxlnKm1PO3MwlwYlpVdqFPVd/Q=
+  template:
+    metadata:
+      name: vaultwarden-admin
+      namespace: vaultwarden
+    type: Opaque
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -10,6 +28,8 @@ metadata:
   namespace: vaultwarden
   labels:
     app: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   strategy:
@@ -22,112 +42,129 @@ spec:
       labels:
         app: vaultwarden
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-      - name: vaultwarden
-        image: vaultwarden/server:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-        env:
-        - name: DOMAIN
-          value: "https://vaultwarden.snapper-larch.ts.net"
-        - name: SIGNUPS_ALLOWED
-          value: "false"  # flip to "true" if need to add another account
-        - name: ADMIN_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: vaultwarden-admin
-              key: ADMIN_TOKEN
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            memory: 256Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          runAsUser: 1000
-          runAsGroup: 1000
-        startupProbe:
-          httpGet:
-            path: /alive
-            port: 80
-          periodSeconds: 5
-          failureThreshold: 7
-        readinessProbe:
-          httpGet:
-            path: /alive
-            port: 80
-          periodSeconds: 5
-          failureThreshold: 2
-        livenessProbe:
-          httpGet:
-            path: /alive
-            port: 80
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 2
-        volumeMounts:
-        - name: vaultwarden-data
-          mountPath: /data
+        - name: vaultwarden
+          image: vaultwarden/server:1.37.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: DOMAIN
+              value: "https://vaultwarden.snapper-larch.ts.net"
+            - name: SIGNUPS_ALLOWED
+              value: "false" # flip to "true" if need to add another account
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-admin
+                  key: ADMIN_TOKEN
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          startupProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            periodSeconds: 5
+            failureThreshold: 7
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: 80
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+          volumeMounts:
+            - name: vaultwarden-data
+              mountPath: /data
       volumes:
-      - name: vaultwarden-data
-        hostPath:
-          path: /home/anuj/vaultwarden/data
-          type: DirectoryOrCreate
+        - name: vaultwarden-data
+          hostPath:
+            path: /home/anuj/vaultwarden/data
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: vaultwarden-service
   namespace: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   type: ClusterIP
   selector:
     app: vaultwarden
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
+    - protocol: TCP
+      port: 80
+      targetPort: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vaultwarden-ingress
   namespace: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-      - vaultwarden.snapper-larch.ts.net
+        - vaultwarden
   rules:
-  - host: vaultwarden.snapper-larch.ts.net
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: vaultwarden-service
-            port:
-              number: 80
+    - host: vaultwarden
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden-service
+                port:
+                  number: 80
 ---
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
 metadata:
-  creationTimestamp: null
-  name: vaultwarden-admin
+  name: vaultwarden-isolation
   namespace: vaultwarden
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
-  encryptedData:
-    ADMIN_TOKEN: AgATBvT9QkJ8T9zl27KeOlaRbZyCaTi3il6zwkYJdM/8bB13EAY35Ew7keHhSUo5YcGw4198yzD6E++saXdMZpSWJVevg6TjWUp9UgX1hCJrAym2zQkIb694k9gFyK8GnEBLDRS83TirFW4aSEhFkmXSxJNBnkdaBpad2pAIC66QaoHo4vEKVKUjx0Lo71lWtXl6sDD/MkRr1K7mNsjbadCkNHTVCqgdOUIyfTzbKif08qjpgmTYrQUOf86yaf1JuoSMt1EqCHIy5TBGP2Fv9PsUM/i56VWS2r04FQisG1fjcXs95Zaft8Kj4U48eG52onBz0d0ruXmAZti369Ib96S8xUALdN67Zj7YyLUoMug5lFIybD3EdOb1eO5JgcWG1fue/VhxbSvaJjZ9OGzekYufiMprx8+QDUTUDdmYCs7iiMWTduxNSS93WqRZNVOrGvrpeOKttYfpitB77aYvs5dfrloURk7JPWEfOp87irW8C+06K+76fpbyOSWIka7RHusIMicMFxPeuvNbN3aH5jIgY2g/9xWIX24yiX+x6albCWMLR4mjaZFIiEqm89HeqpjRZV37H4IHxLms+4Gv0gyLaXMNHCiJIEQvGVdAS8GLY/0V7UY7vYWHb4TwozSn65VGDio9UxZyQO9+DYtQJgEpDyEHEoQPd3IPpikMtL9bopWbL9+e2Re3hmxlnKm1PO3MwlwYlpVdqFPVd/Q=
-  template:
-    metadata:
-      creationTimestamp: null
-      name: vaultwarden-admin
-      namespace: vaultwarden
-    type: Opaque
-
+  podSelector:
+    matchLabels:
+      app: vaultwarden
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tailscale
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: homepage
+      ports:
+        - protocol: TCP
+          port: 80
