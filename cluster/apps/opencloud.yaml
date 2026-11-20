@@ -41,7 +41,7 @@ spec:
       labels:
         app: opencloud
     spec:
-      # TODO: Replace hardcoded Tailscale IP 
+      # TODO: Replace hardcoded Tailscale IP
       hostAliases:
         - ip: "100.101.66.24"
           hostnames:
